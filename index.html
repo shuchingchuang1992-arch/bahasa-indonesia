@@ -2654,5 +2654,21 @@ function stopSpeaking() {
   }
 </script>
 </script>
+  // 當使用者點擊「繼續學習」時呼叫此函式
+function saveProgress(lessonName) {
+    localStorage.setItem('lastLesson', lessonName);
+    alert('進度已儲存：' + lessonName);
+    updateUI();
+}
+
+// 頁面載入時檢查進度
+function updateUI() {
+    const last = localStorage.getItem('lastLesson');
+    if (last) {
+        document.getElementById('status').innerText = "上次學到：" + last;
+    }
+}
+
+window.onload = updateUI;
 </body>
 </html>
