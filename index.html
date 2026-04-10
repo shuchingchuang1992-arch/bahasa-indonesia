@@ -2645,6 +2645,59 @@ function stopSpeaking() {
 
 init();
 </script>
+  // 1. 請填入你剛剛部署完得到的 GAS 網址
+const GAS_URL = "https://script.google.com/macros/s/AKfycbwm6rDcuyOo_sBP-YZrK01_Q2rz9qSA6tD7ML7ucAbDcpUIy3lY8MEOekCGXysfEbV2/exec"; 
+
+// 2. 雲端儲存函式：把進度傳給 Google 試算表
+async function syncToCloud(lessonName) {
+    try {
+        await fetch(GAS_URL, {
+            method: "POST",
+            mode: "no-cors", // 避免瀏覽器安全性攔截
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ 
+                lesson_id: lessonName, 
+                status: "已完成" 
+            })
+        });
+        console.log("雲端同步指令已發出");
+    } catch (error) {
+        console.error("同步失敗:", error);
+    }
+}
+
+// 3. 雲端讀取函式：從 Google 試算表抓進度
+async function loadFromCloud() {
+    try {
+        const response = await fetch(GAS_URL);
+        const data = await response.json();
+        // data[1] 是試算表的第二列（第一筆進度）
+        if (data && data.length > 1) {
+            const lastLesson = data[1][0]; // 取得 lesson_id
+            document.getElementById('status').innerText = "雲端進度同步成功：上次學到 " + lastLesson;
+        }
+    } catch (error) {
+        console.log("讀取雲端失敗或暫無資料");
+    }
+}
+
+// 4. 修改你原本的儲存按鈕邏輯
+function handleComplete(lessonName) {
+    // 原本的本地儲存
+    localStorage.setItem('lastLesson', lessonName);
+    
+    // 新增的雲端同步
+    syncToCloud(lessonName);
+    
+    alert("進度已儲存並嘗試同步至雲端！");
+}
+
+// 5. 網頁開啟時自動讀取
+window.onload = function() {
+    loadFromCloud();
+};
 </body>
 </html>
 <link rel="manifest" href="manifest.json">
@@ -2657,3 +2710,4 @@ init();
       .then(() => console.log("PWA 服務已啟動"));
   }
 </script>
+
