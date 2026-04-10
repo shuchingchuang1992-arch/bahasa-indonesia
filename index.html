@@ -2643,42 +2643,16 @@ function stopSpeaking() {
   if (btn) btn.classList.remove('speaking');
 }
 
-init();
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#4A90E2">
 
 <script>
-    // 確保這裡只有純 JavaScript，不要有任何 HTML 標籤
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbwm6rDcuyOo_sBP-YZrK01_Q2rz9qSA6tD7ML7ucAbDcpUIy3lY8MEOekCGXysfEbV2/exec"; 
-
-    async function syncToCloud(lessonName) {
-        try {
-            await fetch(GAS_URL, {
-                method: "POST",
-                mode: "no-cors",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ lesson_id: lessonName, status: "已完成" })
-            });
-        } catch (e) { console.error(e); }
-    }
-
-    async function loadFromCloud() {
-        try {
-            const response = await fetch(GAS_URL);
-            const data = await response.json();
-            if (data && data.length > 1) {
-                const statusElement = document.getElementById('status');
-                if (statusElement) statusElement.innerText = "上次學到：" + data[1][0];
-            }
-        } catch (e) { console.log("讀取中..."); }
-    }
-
-    window.addEventListener('load', loadFromCloud);
-
-    // 這是你原本按鈕會呼叫的函式名稱，請確保與你按鈕上的 onclick 名稱一致
-    function saveProgress(lessonName) {
-        localStorage.setItem('lastLesson', lessonName);
-        syncToCloud(lessonName);
-        alert("進度已儲存！");
-    }
+  // 註冊 Service Worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js')
+      .then(() => console.log("PWA 服務已啟動"));
+  }
+</script>
 </script>
 </body>
 </html>
