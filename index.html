@@ -2652,26 +2652,33 @@ function stopSpeaking() {
     navigator.serviceWorker.register('sw.js')
       .then(() => console.log("PWA 服務已啟動"));
   }
-<script>
-        // 1. 當使用者點擊「繼續學習」時呼叫此函式
+
+       <script>
+        // 1. 當點擊完成或儲存時，讓手機記住這課的名稱
         function saveProgress(lessonName) {
-            localStorage.setItem('lastLesson', lessonName);
-            // 如果你已經設定好 Google 試算表同步，記得在這裡也加上 syncToCloud(lessonName);
-            alert('進度已儲存：' + lessonName);
+            localStorage.setItem('ukbi_progress', lessonName);
+            
+            // 更新畫面上的文字
             updateUI();
+            
+            // 噴出小提醒告知成功
+            alert('手機已記住進度：' + lessonName);
         }
 
-        // 2. 頁面載入時檢查進度
+        // 2. 負責把手機裡的記憶抓出來顯示在畫面上
         function updateUI() {
-            const last = localStorage.getItem('lastLesson');
-            const statusElement = document.getElementById('status');
-            if (last && statusElement) {
-                statusElement.innerText = "上次學到：" + last;
+            const lastLesson = localStorage.getItem('ukbi_progress');
+            const statusBox = document.getElementById('status');
+            
+            if (lastLesson && statusBox) {
+                statusBox.innerText = "上次學到：" + lastLesson;
             }
         }
 
-        // 3. 設定網頁載入後執行
+        // 3. 網頁一打開，立刻執行「讀取記憶」的動作
         window.onload = updateUI;
     </script>
+</body>
+</html>
 </body>
 </html>
