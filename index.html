@@ -2682,3 +2682,36 @@ function stopSpeaking() {
 </html>
 </body>
 </html>
+<script>
+        // 1. 翻牌功能 (解決 ReferenceError: flipCard is not defined)
+        function flipCard(cardElement) {
+            cardElement.classList.toggle('is-flipped');
+        }
+
+        // 2. 儲存進度 (手機本地記憶)
+        function saveProgress(lessonName) {
+            localStorage.setItem('ukbi_progress', lessonName);
+            updateUI();
+            alert('手機已記住進度：' + lessonName);
+        }
+
+        // 3. 更新畫面顯示
+        function updateUI() {
+            const lastLesson = localStorage.getItem('ukbi_progress');
+            const statusBox = document.getElementById('status');
+            if (lastLesson && statusBox) {
+                statusBox.innerText = "上次學到：" + lastLesson;
+            }
+        }
+
+        // 4. 初始化
+        window.onload = function() {
+            updateUI();
+            // 讓 PWA 在背景運作 (解決截圖中的 SW 註冊問題)
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js').catch(() => {});
+            }
+        };
+    </script>
+</body>
+</html>
