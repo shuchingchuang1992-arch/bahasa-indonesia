@@ -1,12 +1,3 @@
-const CACHE_NAME = 'indo-v1';
-const assets = ['/', '/index.html', '/style.css', '/script.js'];
-
-self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(assets)));
+self.addEventListener('fetch', (event) => {
+  // 這裡暫時留空，確保網頁能正常載入
 });
-
-self.addEventListener('fetch', (e) => {
-  e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
-});
-localStorage.setItem('indo_progress', 'Lesson 5');
-let lastLesson = localStorage.getItem('indo_progress');
