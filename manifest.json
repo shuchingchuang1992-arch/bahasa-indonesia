@@ -1,0 +1,2665 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UKBI Madya 單字訓練系統 v3</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg: #f7f4ef;
+  --surface: #ffffff;
+  --surface2: #f0ece4;
+  --border: #e0d9ce;
+  --accent: #c8502a;
+  --accent2: #2a6e4e;
+  --gold: #b8922a;
+  --text: #1a1610;
+  --muted: #8a7f72;
+  --light: #d4cdc2;
+  --red: #c8502a;
+  --green: #2a6e4e;
+  --blue: #2a4e8e;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+body::before {
+  content:'';
+  position:fixed; inset:0;
+  background:
+    url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c8b090' fill-opacity='0.06'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  pointer-events:none; z-index:0;
+}
+
+.app { max-width:860px; margin:0 auto; padding:24px 20px; position:relative; z-index:1; }
+
+/* ── HEADER ── */
+header {
+  display:flex; align-items:flex-start; justify-content:space-between;
+  margin-bottom:28px; padding-bottom:20px;
+  border-bottom: 2px solid var(--text);
+}
+.brand { }
+.brand-title {
+  font-family:'Cormorant Garamond', serif;
+  font-size:32px; font-weight:700; color:var(--text);
+  letter-spacing:-0.5px; line-height:1;
+}
+.brand-title em { color:var(--accent); font-style:normal; }
+.brand-sub { font-size:12px; color:var(--muted); margin-top:4px; letter-spacing:1px; text-transform:uppercase; }
+
+.header-stats { display:flex; gap:24px; }
+.hstat { text-align:right; }
+.hstat-n { font-family:'Cormorant Garamond',serif; font-size:28px; font-weight:700; color:var(--accent); line-height:1; }
+.hstat-l { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; }
+
+/* ── STREAK ── */
+.streak-row {
+  display:flex; gap:12px; margin-bottom:20px;
+}
+.streak-card {
+  flex:1; background:var(--text); color:var(--bg);
+  border-radius:12px; padding:14px 18px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.streak-left-inner { }
+.streak-label { font-size:11px; text-transform:uppercase; letter-spacing:1px; opacity:0.6; }
+.streak-val { font-family:'Cormorant Garamond',serif; font-size:36px; font-weight:700; color:var(--gold); line-height:1.1; }
+.streak-sub-text { font-size:12px; opacity:0.5; }
+.streak-icon { font-size:32px; }
+
+.today-card {
+  flex:1; background:var(--accent); color:#fff;
+  border-radius:12px; padding:14px 18px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.today-card .streak-label { opacity:0.75; }
+.today-card .streak-val { color:#fff; }
+
+/* ── WEEK / DAY NAV ── */
+.nav-section { margin-bottom:18px; }
+.nav-label { font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin-bottom:10px; }
+.week-tabs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+.wtab {
+  padding:5px 14px; border-radius:20px; border:1.5px solid var(--border);
+  background:var(--surface); font-size:12px; cursor:pointer;
+  color:var(--muted); transition:all 0.18s; font-family:'Outfit',sans-serif; font-weight:500;
+}
+.wtab:hover { border-color:var(--accent); color:var(--accent); }
+.wtab.active { background:var(--text); border-color:var(--text); color:var(--bg); }
+.wtab.done { border-color:var(--green); color:var(--green); }
+
+.day-tabs { display:flex; gap:5px; flex-wrap:wrap; }
+.dtab {
+  padding:4px 11px; border-radius:16px; border:1px solid var(--border);
+  background:var(--surface); font-size:11px; cursor:pointer;
+  color:var(--muted); transition:all 0.15s; font-family:'JetBrains Mono',monospace;
+}
+.dtab:hover { border-color:var(--gold); color:var(--gold); }
+.dtab.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+.dtab.done { border-color:var(--green); color:var(--green); background:rgba(42,110,78,0.07); }
+
+/* ── PROGRESS ── */
+.progress-bar-wrap { margin-bottom:22px; }
+.progress-info { display:flex; justify-content:space-between; font-size:12px; color:var(--muted); margin-bottom:6px; }
+.prog-track { height:5px; background:var(--border); border-radius:3px; overflow:hidden; }
+.prog-fill { height:100%; background:linear-gradient(90deg, var(--accent), var(--gold)); border-radius:3px; transition:width 0.5s cubic-bezier(.4,0,.2,1); }
+
+/* ── MODE TABS ── */
+.mode-tabs { display:flex; gap:0; margin-bottom:22px; border:1.5px solid var(--border); border-radius:10px; overflow:hidden; }
+.mtab {
+  flex:1; padding:10px; border:none; background:transparent;
+  font-size:13px; cursor:pointer; color:var(--muted);
+  font-family:'Outfit',sans-serif; font-weight:500; transition:all 0.15s;
+  border-right:1px solid var(--border);
+}
+.mtab:last-child { border-right:none; }
+.mtab:hover { background:var(--surface2); color:var(--text); }
+.mtab.active { background:var(--text); color:var(--bg); }
+
+/* ── FLASH CARD ── */
+.card-scene { margin-bottom:16px; position: relative; }
+
+.flashcard {
+  width:100%; min-height:320px; position:relative;
+  cursor:pointer;
+  transition: transform 0.15s ease-in;
+}
+.flashcard.flip-out  { transform: rotateY(90deg);  transition: transform 0.18s ease-in;  }
+.flashcard.flip-in   { transform: rotateY(0deg);   transition: transform 0.18s ease-out; }
+
+.card-face {
+  width:100%; min-height:320px;
+  background:var(--surface); border:1.5px solid var(--border);
+  border-radius:18px; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; padding:32px 36px;
+  overflow:hidden; position:relative;
+}
+.card-face::after {
+  content:'';
+  position:absolute; bottom:-40px; right:-40px;
+  width:160px; height:160px; border-radius:50%;
+  background:radial-gradient(circle, rgba(200,80,42,0.06), transparent 70%);
+  pointer-events:none;
+}
+.card-back { background:var(--surface2); display:none; }
+.card-back::after { background:radial-gradient(circle, rgba(42,110,78,0.07), transparent 70%); }
+
+/* show back, hide front */
+.flashcard.is-flipped .card-front { display:none; }
+.flashcard.is-flipped .card-back  { display:flex; }
+
+.card-pos {
+  font-size:10px; text-transform:uppercase; letter-spacing:1.5px;
+  color:var(--muted); border:1px solid var(--border);
+  padding:3px 10px; border-radius:20px; margin-bottom:18px;
+  font-family:'JetBrains Mono',monospace;
+}
+.card-word-main {
+  font-family:'Cormorant Garamond',serif;
+  font-size:58px; font-weight:700; color:var(--text);
+  text-align:center; line-height:1; margin-bottom:8px;
+}
+.card-pron {
+  font-family:'JetBrains Mono',monospace;
+  font-size:14px; color:var(--accent); margin-bottom:6px;
+}
+
+/* Speak button – FRONT */
+.speak-btn-front {
+  margin-top:14px;
+  display:inline-flex; align-items:center; gap:6px;
+  padding:7px 18px; border-radius:20px;
+  border:1.5px solid var(--border); background:var(--surface2);
+  cursor:pointer; font-size:12px; color:var(--muted);
+  font-family:'Outfit',sans-serif; font-weight:500;
+  transition:all 0.2s;
+}
+.speak-btn-front:hover { border-color:var(--accent); color:var(--accent); background:#fff; }
+.speak-btn-front.speaking { border-color:var(--accent); color:var(--accent); background:rgba(200,80,42,0.08); }
+
+.card-meaning-main {
+  font-size:32px; font-weight:600; color:var(--text);
+  margin-bottom:14px; text-align:center;
+}
+
+/* ── 放大後的例句文字 ── */
+.card-ex {
+  font-size:17px;          /* 原本 13px → 放大為 17px */
+  color:var(--muted);
+  text-align:center;
+  line-height:1.9;
+  max-width:500px;
+  font-weight: 400;
+}
+.card-ex strong { color:var(--accent); font-weight:600; }
+
+/* Speak button – BACK (example sentence) */
+.speak-btn-ex {
+  margin-top:12px;
+  display:inline-flex; align-items:center; gap:6px;
+  padding:6px 14px; border-radius:20px;
+  border:1.5px solid rgba(42,110,78,0.35); background:rgba(42,110,78,0.07);
+  cursor:pointer; font-size:11px; color:var(--green);
+  font-family:'Outfit',sans-serif; font-weight:500;
+  transition:all 0.2s;
+}
+.speak-btn-ex:hover { border-color:var(--green); background:rgba(42,110,78,0.14); }
+.speak-btn-ex.speaking { border-color:var(--green); animation:pulse 0.6s infinite alternate; }
+
+/* ── 放大後的例句中文翻譯 ── */
+.card-ex-zh {
+  margin-top:8px;
+  font-size:14px;        /* 原本 12px → 放大為 14px */
+  color:var(--muted);
+  text-align:center;
+  font-style:italic;
+}
+
+/* ── 情境文模式 ── */
+.reading-card {
+  background:var(--surface); border:1.5px solid var(--border);
+  border-radius:18px; padding:28px 32px; margin-bottom:18px;
+}
+.reading-header { margin-bottom:20px; padding-bottom:16px; border-bottom:1px solid var(--border); }
+.reading-type-badge {
+  display:inline-block; font-size:10px; font-family:'JetBrains Mono',monospace;
+  text-transform:uppercase; letter-spacing:1.5px;
+  padding:3px 10px; border-radius:20px; margin-bottom:10px;
+  background:rgba(184,146,42,0.12); color:var(--gold); border:1px solid rgba(184,146,42,0.3);
+}
+.reading-type-badge.dialogue { background:rgba(42,78,142,0.1); color:var(--blue); border-color:rgba(42,78,142,0.25); }
+.reading-type-badge.article  { background:rgba(42,110,78,0.1); color:var(--green); border-color:rgba(42,110,78,0.25); }
+.reading-title {
+  font-family:'Cormorant Garamond',serif; font-size:24px; font-weight:700;
+  color:var(--text); line-height:1.2; margin-bottom:6px;
+}
+.reading-subtitle { font-size:12px; color:var(--muted); }
+
+/* 對話樣式 */
+.reading-body { line-height:2; margin-bottom:20px; }
+.dialogue-line { display:flex; gap:12px; margin-bottom:10px; align-items:flex-start; }
+.dialogue-speaker {
+  font-size:11px; font-family:'JetBrains Mono',monospace; font-weight:600;
+  color:var(--accent); white-space:nowrap; min-width:52px; padding-top:2px;
+  text-transform:uppercase; letter-spacing:0.5px;
+}
+.dialogue-speaker.b { color:var(--blue); }
+.dialogue-text {
+  font-size:15px; color:var(--text); line-height:1.8; flex:1;
+  background:var(--surface2); border-radius:10px; padding:8px 14px;
+  border:1px solid var(--border);
+}
+.dialogue-text-zh { font-size:12px; color:var(--muted); margin-top:3px; font-style:italic; }
+.dialogue-text .hl { color:var(--accent); font-weight:600; border-bottom:1.5px solid rgba(200,80,42,0.3); cursor:default; }
+
+/* 短文樣式 */
+.article-para {
+  font-size:15px; color:var(--text); line-height:2; margin-bottom:14px;
+  background:var(--surface2); border-radius:10px; padding:14px 18px;
+  border:1px solid var(--border);
+}
+.article-para-zh { font-size:12px; color:var(--muted); margin-top:6px; font-style:italic; line-height:1.6; }
+.article-para .hl { color:var(--accent); font-weight:600; border-bottom:1.5px solid rgba(200,80,42,0.3); cursor:default; }
+
+/* 今日詞彙出現清單 */
+.reading-vocab {
+  padding:14px 18px; background:rgba(184,146,42,0.06);
+  border:1px solid rgba(184,146,42,0.2); border-radius:10px; margin-bottom:18px;
+}
+.reading-vocab-title { font-size:10px; font-family:'JetBrains Mono',monospace; text-transform:uppercase; letter-spacing:1px; color:var(--gold); margin-bottom:10px; }
+.reading-vocab-chips { display:flex; flex-wrap:wrap; gap:6px; }
+.vocab-chip {
+  display:inline-flex; align-items:center; gap:4px;
+  padding:3px 10px; border-radius:20px; font-size:12px;
+  background:var(--surface); border:1px solid rgba(184,146,42,0.25);
+  color:var(--text); font-weight:500;
+}
+.vocab-chip span { font-size:11px; color:var(--muted); }
+
+.reading-actions { display:flex; gap:8px; }
+.reading-speak-btn {
+  padding:8px 18px; border-radius:20px; border:1.5px solid rgba(42,110,78,0.35);
+  background:rgba(42,110,78,0.07); color:var(--green);
+  font-size:12px; font-weight:500; font-family:'Outfit',sans-serif;
+  cursor:pointer; transition:all 0.18s; display:flex; align-items:center; gap:6px;
+}
+.reading-speak-btn:hover { background:rgba(42,110,78,0.16); }
+.reading-speak-btn.speaking { animation:pulse 0.6s infinite alternate; }
+
+/* ── 儲存例句按鈕 ── */
+.save-ex-btn {
+  margin-top:10px;
+  display:inline-flex; align-items:center; gap:5px;
+  padding:5px 13px; border-radius:20px;
+  border:1.5px solid rgba(42,78,142,0.35); background:rgba(42,78,142,0.07);
+  cursor:pointer; font-size:11px; color:var(--blue);
+  font-family:'Outfit',sans-serif; font-weight:500;
+  transition:all 0.2s;
+}
+.save-ex-btn:hover { border-color:var(--blue); background:rgba(42,78,142,0.15); }
+.save-ex-btn.saved {
+  border-color:var(--gold); background:rgba(184,146,42,0.15); color:var(--gold);
+}
+
+/* ── 儲存例句面板 ── */
+.saved-header {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:14px; padding:12px 16px;
+  background:var(--surface); border:1.5px solid var(--border); border-radius:10px;
+}
+.saved-header-left { display:flex; align-items:center; gap:10px; }
+.saved-count-badge {
+  background:var(--blue); color:#fff;
+  font-size:11px; font-weight:600; padding:3px 10px; border-radius:20px;
+  font-family:'JetBrains Mono',monospace;
+}
+.saved-clear-btn {
+  padding:5px 12px; border-radius:8px; border:1.5px solid rgba(200,80,42,0.3);
+  background:transparent; color:var(--red); font-size:12px; font-weight:500;
+  cursor:pointer; font-family:'Outfit',sans-serif; transition:all 0.15s;
+}
+.saved-clear-btn:hover { background:rgba(200,80,42,0.08); border-color:var(--red); }
+
+.saved-list { display:flex; flex-direction:column; gap:10px; margin-bottom:18px; }
+
+.saved-item {
+  background:var(--surface); border:1.5px solid var(--border);
+  border-radius:12px; padding:16px 18px; position:relative;
+  transition:border-color 0.15s;
+}
+.saved-item:hover { border-color:var(--blue); }
+.saved-item-top {
+  display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
+  margin-bottom:10px;
+}
+.saved-item-word {
+  font-family:'Cormorant Garamond',serif; font-size:22px; font-weight:700;
+  color:var(--text); line-height:1;
+}
+.saved-item-zh { font-size:13px; color:var(--muted); margin-top:3px; }
+.saved-item-meta { display:flex; align-items:center; gap:6px; flex-shrink:0; }
+.saved-item-pos {
+  font-size:9px; font-family:'JetBrains Mono',monospace; color:var(--gold);
+  text-transform:uppercase; letter-spacing:1px;
+  border:1px solid rgba(184,146,42,0.3); padding:2px 7px; border-radius:10px;
+}
+.saved-item-date { font-size:10px; color:var(--light); font-family:'JetBrains Mono',monospace; }
+
+.saved-item-ex {
+  font-size:15px; color:var(--text); line-height:1.8; margin-bottom:6px;
+  cursor:pointer; transition:color 0.15s;
+}
+.saved-item-ex:hover { color:var(--blue); }
+.saved-item-ex strong { color:var(--accent); font-weight:600; }
+.saved-item-exzh { font-size:12px; color:var(--muted); font-style:italic; }
+
+.saved-item-actions {
+  display:flex; gap:6px; margin-top:10px; padding-top:10px;
+  border-top:1px solid var(--border);
+}
+.saved-action-btn {
+  padding:4px 12px; border-radius:16px; border:1px solid var(--border);
+  background:transparent; font-size:11px; color:var(--muted);
+  cursor:pointer; font-family:'Outfit',sans-serif; font-weight:500;
+  transition:all 0.15s; display:flex; align-items:center; gap:4px;
+}
+.saved-action-btn:hover { border-color:var(--blue); color:var(--blue); background:rgba(42,78,142,0.06); }
+.saved-action-btn.del:hover { border-color:var(--red); color:var(--red); background:rgba(200,80,42,0.06); }
+
+.saved-empty {
+  text-align:center; padding:48px 24px;
+  background:var(--surface); border:1.5px dashed var(--border);
+  border-radius:14px;
+}
+.saved-empty-icon { font-size:48px; margin-bottom:14px; opacity:0.5; }
+.saved-empty-title { font-family:'Cormorant Garamond',serif; font-size:20px; font-weight:700; color:var(--muted); margin-bottom:8px; }
+.saved-empty-sub { font-size:13px; color:var(--light); line-height:1.7; }
+
+.flip-cue {
+  position:absolute; bottom:12px; right:16px;
+  font-size:11px; color:var(--light);
+  display:flex; align-items:center; gap:4px;
+  pointer-events:none;
+}
+
+/* ── RATING ── */
+.rating-wrap { display:flex; gap:8px; margin-bottom:18px; }
+.rbtn {
+  flex:1; padding:12px 8px; border-radius:10px;
+  border:1.5px solid var(--border); background:var(--surface);
+  cursor:pointer; font-family:'Outfit',sans-serif; font-size:12px;
+  font-weight:500; color:var(--muted);
+  display:flex; flex-direction:column; align-items:center; gap:3px;
+  transition:all 0.18s;
+}
+.rbtn .em { font-size:18px; }
+.rbtn .iv { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--light); }
+.rbtn:hover { transform:translateY(-2px); }
+.r-again:hover { border-color:var(--red); color:var(--red); background:rgba(200,80,42,0.06); }
+.r-hard:hover  { border-color:var(--gold); color:var(--gold); background:rgba(184,146,42,0.07); }
+.r-good:hover  { border-color:var(--green); color:var(--green); background:rgba(42,110,78,0.07); }
+.r-easy:hover  { border-color:var(--blue); color:var(--blue); background:rgba(42,78,142,0.07); }
+
+/* ── DAY SUMMARY ── */
+.day-summary {
+  background:var(--surface); border:1.5px solid var(--border);
+  border-radius:14px; padding:18px 20px; margin-bottom:18px;
+  display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;
+}
+.day-info { }
+.day-title { font-family:'Cormorant Garamond',serif; font-size:20px; font-weight:700; }
+.day-meta { font-size:12px; color:var(--muted); margin-top:3px; }
+.day-badges { display:flex; gap:8px; flex-wrap:wrap; }
+.badge {
+  padding:4px 12px; border-radius:20px; font-size:11px; font-weight:600;
+  font-family:'JetBrains Mono',monospace;
+}
+.badge-new { background:rgba(200,80,42,0.1); color:var(--accent); border:1px solid rgba(200,80,42,0.2); }
+.badge-rev { background:rgba(42,78,142,0.1); color:var(--blue); border:1px solid rgba(42,78,142,0.2); }
+.badge-topic { background:rgba(184,146,42,0.1); color:var(--gold); border:1px solid rgba(184,146,42,0.2); }
+
+/* ── LIST MODE ── */
+.word-list { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:18px; }
+.witem {
+  background:var(--surface); border:1.5px solid var(--border);
+  border-radius:10px; padding:12px 14px; cursor:pointer;
+  transition:border-color 0.15s; display:flex; align-items:center; justify-content:space-between;
+}
+.witem:hover { border-color:var(--accent); }
+.witem.mastered { border-color:var(--green); background:rgba(42,110,78,0.04); }
+.witem-left {}
+.witem-pos { font-size:9px; font-family:'JetBrains Mono',monospace; color:var(--gold); text-transform:uppercase; letter-spacing:1px; }
+.witem-word { font-weight:600; font-size:15px; margin:2px 0; }
+.witem-zh { font-size:12px; color:var(--muted); }
+.witem-speak {
+  width:30px; height:30px; border-radius:50%;
+  border:1px solid var(--border); background:transparent;
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  font-size:14px; color:var(--muted); transition:all 0.15s;
+  flex-shrink:0;
+}
+.witem-speak:hover { border-color:var(--accent); color:var(--accent); background:rgba(200,80,42,0.07); }
+.witem-speak.speaking { border-color:var(--accent); color:var(--accent); animation:pulse 0.6s infinite alternate; }
+@keyframes pulse { from{transform:scale(1)} to{transform:scale(1.15)} }
+
+/* ── QUIZ MODE ── */
+.quiz-q { text-align:center; margin-bottom:24px; }
+.quiz-prompt { font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin-bottom:10px; }
+.quiz-word-display {
+  font-family:'Cormorant Garamond',serif;
+  font-size:62px; font-weight:700; color:var(--text); line-height:1;
+  margin-bottom:8px;
+}
+.quiz-speak-btn {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:6px 14px; border-radius:20px; border:1.5px solid var(--border);
+  background:var(--surface); cursor:pointer; font-size:12px; color:var(--muted);
+  font-family:'Outfit',sans-serif; transition:all 0.15s;
+}
+.quiz-speak-btn:hover { border-color:var(--accent); color:var(--accent); }
+.quiz-opts { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+.qopt {
+  padding:14px; border-radius:10px; border:1.5px solid var(--border);
+  background:var(--surface); cursor:pointer; font-size:14px; font-weight:500;
+  color:var(--text); text-align:center; transition:all 0.15s;
+  font-family:'Outfit',sans-serif;
+}
+.qopt:hover { border-color:var(--blue); background:rgba(42,78,142,0.06); }
+.qopt.correct { border-color:var(--green); background:rgba(42,110,78,0.1); color:var(--green); }
+.qopt.wrong { border-color:var(--red); background:rgba(200,80,42,0.08); color:var(--red); }
+.quiz-feedback {
+  text-align:center; padding:12px; border-radius:10px;
+  font-size:14px; margin-bottom:12px;
+}
+.quiz-feedback.ok { background:rgba(42,110,78,0.1); border:1px solid var(--green); color:var(--green); }
+.quiz-feedback.no { background:rgba(200,80,42,0.08); border:1px solid var(--red); color:var(--red); }
+
+/* ── COMPLETE OVERLAY ── */
+.complete-overlay {
+  position: absolute; inset: 0; z-index: 10;
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: 18px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 32px 36px; text-align: center;
+  animation: fadeInOverlay 0.3s ease;
+}
+@keyframes fadeInOverlay {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.complete-overlay .co-emoji  { font-size: 48px; margin-bottom: 12px; }
+.complete-overlay .co-title  {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 26px; font-weight: 700;
+  color: var(--text); margin-bottom: 6px;
+}
+.complete-overlay .co-sub    { font-size: 13px; color: var(--muted); line-height: 1.8; margin-bottom: 18px; }
+
+/* ── BUTTONS ── */
+.btn-primary {
+  width:100%; padding:13px; border-radius:10px; border:none;
+  background:var(--accent); color:#fff; font-size:14px; font-weight:600;
+  cursor:pointer; font-family:'Outfit',sans-serif; transition:opacity 0.18s;
+}
+.btn-primary:hover { opacity:0.88; }
+.btn-secondary {
+  width:100%; padding:13px; border-radius:10px;
+  border:1.5px solid var(--border); background:transparent;
+  color:var(--text); font-size:14px; font-weight:500;
+  cursor:pointer; font-family:'Outfit',sans-serif; transition:all 0.15s;
+}
+.btn-secondary:hover { border-color:var(--text); }
+
+/* continue btn in overlay */
+.continue-btn {
+  padding:10px 24px; border-radius:10px; border:none;
+  background:var(--accent); color:#fff; font-size:14px; font-weight:600;
+  cursor:pointer; font-family:'Outfit',sans-serif; transition:opacity 0.18s;
+}
+.continue-btn:hover { opacity:0.88; }
+
+/* ── NOTIFICATION BANNER ── */
+.notif-banner {
+  background:linear-gradient(135deg,#1a3a2a,#0d2018);
+  border:1.5px solid rgba(42,110,78,0.4);
+  border-radius:14px; padding:14px 18px; margin-bottom:16px;
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+}
+.notif-banner.warn { background:linear-gradient(135deg,#3a2a10,#201408); border-color:rgba(184,146,42,0.4); }
+.notif-left { display:flex; align-items:center; gap:10px; }
+.notif-icon { font-size:22px; flex-shrink:0; }
+.notif-title { font-size:13px; font-weight:600; color:#fff; margin-bottom:2px; }
+.notif-sub { font-size:11px; color:rgba(255,255,255,0.45); }
+.notif-btn {
+  padding:6px 14px; border-radius:20px; border:1.5px solid rgba(42,110,78,0.5);
+  background:rgba(42,110,78,0.2); color:#3ecf8e; font-size:12px;
+  cursor:pointer; font-family:'Outfit',sans-serif; font-weight:600;
+  white-space:nowrap; transition:all 0.2s; flex-shrink:0;
+}
+.notif-btn:hover { background:rgba(42,110,78,0.38); }
+.warn-btn { border-color:rgba(184,146,42,0.5)!important; background:rgba(184,146,42,0.15)!important; color:var(--gold)!important; }
+.warn-btn:hover { background:rgba(184,146,42,0.3)!important; }
+.notif-close { background:none; border:none; color:rgba(255,255,255,0.25); font-size:18px; cursor:pointer; flex-shrink:0; }
+.notif-close:hover { color:rgba(255,255,255,0.6); }
+
+/* ── DASHBOARD TOGGLE ── */
+.dash-toggle {
+  width:100%; padding:10px 16px; border-radius:10px;
+  border:1.5px solid var(--border); background:var(--surface);
+  font-size:13px; font-weight:500; color:var(--muted);
+  cursor:pointer; font-family:'Outfit',sans-serif;
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:12px; transition:all 0.15s;
+}
+.dash-toggle:hover { border-color:var(--text); color:var(--text); }
+.dash-toggle .arr { transition:transform 0.2s; display:inline-block; }
+.dash-toggle.open .arr { transform:rotate(180deg); }
+
+.dashboard {
+  background:var(--surface); border:1.5px solid var(--border);
+  border-radius:14px; padding:20px; margin-bottom:20px; display:none;
+}
+.dashboard.visible { display:block; }
+.dash-title { font-family:'Cormorant Garamond',serif; font-size:18px; font-weight:700; margin-bottom:16px; }
+
+.dash-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:20px; }
+.dash-stat { background:var(--surface2); border-radius:10px; padding:14px; text-align:center; border:1px solid var(--border); }
+.dash-n { font-family:'Cormorant Garamond',serif; font-size:30px; font-weight:700; color:var(--accent); line-height:1; }
+.dash-l { font-size:11px; color:var(--muted); margin-top:4px; }
+
+.dash-sec { font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin-bottom:10px; font-family:'JetBrains Mono',monospace; }
+
+/* Heatmap */
+.heatmap { display:flex; gap:3px; flex-wrap:wrap; margin-bottom:20px; }
+.hm-day {
+  width:26px; height:26px; border-radius:4px; background:var(--surface2);
+  border:1px solid var(--border); display:flex; align-items:center; justify-content:center;
+  font-size:8px; color:var(--muted); position:relative; cursor:default;
+  font-family:'JetBrains Mono',monospace; transition:transform 0.1s;
+}
+.hm-day:hover { transform:scale(1.2); z-index:2; }
+.hm-day.full  { background:var(--green); border-color:var(--green); color:#fff; }
+.hm-day.part  { background:rgba(42,110,78,0.3); border-color:rgba(42,110,78,0.45); color:var(--green); }
+.hm-day.tod   { border-color:var(--accent)!important; box-shadow:0 0 0 2px rgba(200,80,42,0.28); }
+
+/* Weekly bars */
+.wbars { display:flex; gap:6px; align-items:flex-end; height:64px; margin-bottom:20px; }
+.wbar-w { flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; }
+.wbar-track { width:100%; background:var(--surface2); border-radius:4px; border:1px solid var(--border); flex:1; display:flex; align-items:flex-end; overflow:hidden; min-height:48px; }
+.wbar-fill { width:100%; background:linear-gradient(180deg,var(--accent),var(--gold)); border-radius:3px; transition:height 0.5s cubic-bezier(.4,0,.2,1); min-height:0; }
+.wbar-lbl { font-size:9px; color:var(--muted); font-family:'JetBrains Mono',monospace; }
+
+/* Reminder settings */
+.rem-row { display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border); }
+.rem-row:last-child { border-bottom:none; padding-bottom:0; }
+.rem-lbl { font-size:13px; color:var(--text); }
+.rem-sub { font-size:11px; color:var(--muted); margin-top:2px; }
+.tog { position:relative; width:42px; height:22px; flex-shrink:0; }
+.tog input { opacity:0; width:0; height:0; }
+.tog-sl {
+  position:absolute; inset:0; background:var(--border);
+  border-radius:11px; cursor:pointer; transition:background 0.2s;
+}
+.tog-sl:before {
+  content:''; position:absolute; left:2px; top:2px;
+  width:18px; height:18px; border-radius:50%;
+  background:#fff; transition:transform 0.2s; box-shadow:0 1px 3px rgba(0,0,0,0.2);
+}
+.tog input:checked + .tog-sl { background:var(--green); }
+.tog input:checked + .tog-sl:before { transform:translateX(20px); }
+.time-inp {
+  padding:5px 10px; border-radius:8px; border:1.5px solid var(--border);
+  background:var(--surface2); font-family:'JetBrains Mono',monospace;
+  font-size:13px; color:var(--text); outline:none; width:90px;
+}
+.time-inp:focus { border-color:var(--accent); }
+
+/* ── SAVED PROGRESS TOAST ── */
+.save-toast {
+  position:fixed; bottom:24px; right:24px; z-index:999;
+  background:var(--text); color:var(--bg);
+  padding:10px 18px; border-radius:10px;
+  font-size:12px; font-family:'Outfit',sans-serif; font-weight:500;
+  display:flex; align-items:center; gap:8px;
+  box-shadow:0 4px 24px rgba(0,0,0,0.18);
+  transform:translateY(80px); opacity:0;
+  transition: transform 0.3s cubic-bezier(.4,0,.2,1), opacity 0.3s;
+  pointer-events:none;
+}
+.save-toast.show { transform:translateY(0); opacity:1; }
+
+/* ── QUIZ TYPE TABS ── */
+.quiz-type-tabs {
+  display:flex; gap:0; margin-bottom:14px;
+  border:1.5px solid var(--border); border-radius:10px; overflow:hidden;
+}
+.qttab {
+  flex:1; padding:8px; border:none; background:transparent;
+  font-size:12px; cursor:pointer; color:var(--muted);
+  font-family:'Outfit',sans-serif; font-weight:500; transition:all 0.15s;
+  border-right:1px solid var(--border);
+}
+.qttab:last-child { border-right:none; }
+.qttab:hover { background:var(--surface2); color:var(--text); }
+.qttab.active { background:var(--text); color:var(--bg); }
+
+/* ── QUIZ SCORE ROW ── */
+.quiz-score-row {
+  display:flex; align-items:center; justify-content:space-between;
+  font-size:12px; color:var(--muted); margin-bottom:16px;
+  padding:8px 12px; background:var(--surface2); border-radius:8px;
+}
+.quiz-score-val { font-family:'JetBrains Mono',monospace; color:var(--accent); font-weight:600; }
+
+/* ── FILL BLANK ── */
+.fillblank-sentence {
+  font-size:17px; line-height:2; text-align:center;
+  padding:16px; background:var(--surface); border:1.5px solid var(--border);
+  border-radius:12px; margin-bottom:14px;
+}
+.blank-input {
+  display:inline-block; border:none; border-bottom:2px solid var(--accent);
+  background:transparent; font-size:17px; font-family:'Outfit',sans-serif;
+  color:var(--text); outline:none; text-align:center; padding:0 4px;
+  transition:border-color 0.15s;
+}
+.blank-input:focus { border-bottom-color:var(--blue); }
+.blank-input.correct { border-bottom-color:var(--green); color:var(--green); }
+.blank-input.wrong   { border-bottom-color:var(--red); color:var(--red); }
+.blank-submit {
+  display:block; width:100%; padding:12px; border-radius:10px;
+  border:1.5px solid var(--accent); background:transparent;
+  color:var(--accent); font-size:14px; font-weight:600;
+  cursor:pointer; font-family:'Outfit',sans-serif; transition:all 0.15s;
+  margin-bottom:16px;
+}
+.blank-submit:hover { background:var(--accent); color:#fff; }
+.blank-submit:disabled { opacity:0.4; cursor:not-allowed; }
+
+.hidden { display:none !important; }
+
+@media(max-width:520px){
+  .card-word-main { font-size:42px; }
+  .quiz-word-display { font-size:44px; }
+  .word-list { grid-template-columns:1fr; }
+  .header-stats { gap:14px; }
+  .hstat-n { font-size:22px; }
+  .card-ex { font-size:15px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- HEADER -->
+<header>
+  <div class="brand">
+    <div class="brand-title">Belajar<em>.</em></div>
+    <div class="brand-sub">UKBI Madya · 印尼語備考系統</div>
+  </div>
+  <div class="header-stats">
+    <div class="hstat">
+      <div class="hstat-n" id="hToday">0</div>
+      <div class="hstat-l">今日完成</div>
+    </div>
+    <div class="hstat">
+      <div class="hstat-n" id="hMastered">0</div>
+      <div class="hstat-l">已掌握</div>
+    </div>
+    <div class="hstat">
+      <div class="hstat-n">2100</div>
+      <div class="hstat-l">總單字</div>
+    </div>
+  </div>
+</header>
+
+<!-- STREAK -->
+<div class="streak-row">
+  <div class="streak-card">
+    <div class="streak-left-inner">
+      <div class="streak-label">🔥 連續學習天數</div>
+      <div class="streak-val" id="streakVal">1</div>
+      <div class="streak-sub-text">每天開口，大腦自動記憶</div>
+    </div>
+    <div class="streak-icon">🗓️</div>
+  </div>
+  <div class="today-card">
+    <div class="streak-left-inner">
+      <div class="streak-label">📅 今日進度</div>
+      <div class="streak-val" id="todayVal">0/20</div>
+      <div class="streak-sub-text">新學單字目標</div>
+    </div>
+    <div class="streak-icon">🎯</div>
+  </div>
+</div>
+
+<!-- NOTIFICATION BANNER -->
+<div id="notifBanner" class="notif-banner" style="display:none">
+  <div class="notif-left">
+    <div class="notif-icon">🔔</div>
+    <div>
+      <div class="notif-title" id="notifTitle">開啟每日學習提醒</div>
+      <div class="notif-sub" id="notifSub">每天 09:10 提醒您學習印尼語</div>
+    </div>
+  </div>
+  <button class="notif-btn" id="notifBtn" onclick="handleNotifBtn()">開啟提醒</button>
+  <button class="notif-close" onclick="document.getElementById('notifBanner').style.display='none'">✕</button>
+</div>
+
+<!-- DASHBOARD TOGGLE -->
+<button class="dash-toggle" id="dashToggle" onclick="toggleDash()">
+  <span>📊 學習進度總覽</span><span class="arr">▼</span>
+</button>
+
+<!-- PROGRESS DASHBOARD -->
+<div class="dashboard" id="dashboard">
+  <div class="dash-title">學習進度報告</div>
+  <div class="dash-grid">
+    <div class="dash-stat"><div class="dash-n" id="dStreak">1</div><div class="dash-l">🔥 連續天數</div></div>
+    <div class="dash-stat"><div class="dash-n" id="dMastered">0</div><div class="dash-l">✅ 已掌握單字</div></div>
+    <div class="dash-stat"><div class="dash-n" id="dDaysTotal">0</div><div class="dash-l">📅 累計學習天</div></div>
+    <div class="dash-stat"><div class="dash-n" id="dWeekWords">0</div><div class="dash-l">本週新學</div></div>
+    <div class="dash-stat"><div class="dash-n" id="dAccuracy">—</div><div class="dash-l">測驗正確率</div></div>
+    <div class="dash-stat"><div class="dash-n" id="dProgress">0%</div><div class="dash-l">總體進度</div></div>
+  </div>
+  <div class="dash-sec">最近 60 天學習熱力圖</div>
+  <div class="heatmap" id="heatmap"></div>
+  <div class="dash-sec">近 7 週每週單字量</div>
+  <div class="wbars" id="wbars"></div>
+  <div class="dash-sec">⏰ 每日提醒設定</div>
+  <div class="rem-row">
+    <div><div class="rem-lbl">每日學習提醒</div><div class="rem-sub">使用瀏覽器通知（需授權）</div></div>
+    <label class="tog"><input type="checkbox" id="remToggle" onchange="toggleReminder(this.checked)"><span class="tog-sl"></span></label>
+  </div>
+  <div class="rem-row">
+    <div><div class="rem-lbl">提醒時間</div><div class="rem-sub" id="remStatus">尚未設定</div></div>
+    <input type="time" class="time-inp" id="remTime" value="09:10" onchange="updateReminderTime(this.value)">
+  </div>
+  <div class="rem-row">
+    <div><div class="rem-lbl">測試提醒</div><div class="rem-sub">立即發送一則測試通知</div></div>
+    <button class="notif-btn" onclick="sendTestNotif()" style="padding:5px 12px;font-size:11px">測試通知</button>
+  </div>
+</div>
+
+<!-- WEEK / DAY NAV -->
+<div class="nav-section">
+  <div class="nav-label">週次選擇</div>
+  <div class="week-tabs" id="weekTabs"></div>
+  <div class="nav-label" style="margin-top:10px">日次選擇（每週7天，每天20個單字）</div>
+  <div class="day-tabs" id="dayTabs"></div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-bar-wrap">
+  <div class="progress-info">
+    <span id="progLabel">第一週 · 第1天</span>
+    <span id="progPct">0%</span>
+  </div>
+  <div class="prog-track"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+</div>
+
+<!-- DAY SUMMARY -->
+<div class="day-summary" id="daySummary">
+  <div class="day-info">
+    <div class="day-title" id="dayTitle">第1天｜日常生活基礎</div>
+    <div class="day-meta" id="dayMeta">今日學習：20個新單字</div>
+  </div>
+  <div class="day-badges" id="dayBadges"></div>
+</div>
+
+<!-- MODE TABS -->
+<div class="mode-tabs">
+  <button class="mtab active" onclick="setMode('flash')" id="mFlash">🃏 閃卡複習</button>
+  <button class="mtab" onclick="setMode('list')"  id="mList">📋 詞彙列表</button>
+  <button class="mtab" onclick="setMode('quiz')"  id="mQuiz">✏️ 測驗模式</button>
+  <button class="mtab" onclick="setMode('reading')" id="mReading">📖 情境文</button>
+  <button class="mtab" onclick="setMode('saved')" id="mSaved">🔖 儲存例句</button>
+</div>
+
+<!-- ── FLASH MODE ── -->
+<div id="flashMode">
+  <div class="card-scene" id="cardScene">
+    <div class="flashcard" id="flashcard" onclick="flipCard()">
+
+      <!-- FRONT FACE -->
+      <div class="card-face card-front" id="cardFront">
+        <div class="card-pos" id="fPos">名詞 · nomina</div>
+        <div class="card-word-main" id="fWord">makan</div>
+        <div class="card-pron" id="fPron">/ma-kan/</div>
+        <button class="speak-btn-front" id="speakFront"
+          onclick="event.stopPropagation(); speakCurrentWord()">
+          🔊 點擊聆聽發音
+        </button>
+        <div class="flip-cue">↻ 點擊翻面查看意思</div>
+      </div>
+
+      <!-- BACK FACE -->
+      <div class="card-face card-back" id="cardBack">
+        <div class="card-pos">中文意思</div>
+        <div class="card-meaning-main" id="bMeaning">吃</div>
+        <div class="card-ex" id="bEx"></div>
+        <!-- 朗讀 + 儲存例句 按鈕列 -->
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:center; margin-top:4px;">
+          <button class="speak-btn-ex" id="speakExample"
+            onclick="event.stopPropagation(); speakCurrentExample()">
+            🔊 朗讀例句
+          </button>
+          <button class="save-ex-btn" id="saveExBtn"
+            onclick="event.stopPropagation(); saveCurrentExample()">
+            🔖 儲存例句
+          </button>
+        </div>
+        <div class="card-ex-zh" id="bExZh"></div>
+        <div class="flip-cue">↻ 點擊回到正面</div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="rating-wrap" id="ratingWrap" style="display:none">
+    <button class="rbtn r-again" onclick="rate(0)"><span class="em">😰</span>不記得<span class="iv">重學</span></button>
+    <button class="rbtn r-hard"  onclick="rate(1)"><span class="em">😅</span>有點難<span class="iv" id="iv1">+1天</span></button>
+    <button class="rbtn r-good"  onclick="rate(2)"><span class="em">😊</span>記得了<span class="iv" id="iv2">+3天</span></button>
+    <button class="rbtn r-easy"  onclick="rate(3)"><span class="em">😎</span>很熟練<span class="iv" id="iv3">+7天</span></button>
+  </div>
+</div>
+
+<!-- ── LIST MODE ── -->
+<div id="listMode" class="hidden">
+  <div class="word-list" id="wordList"></div>
+</div>
+
+<!-- ── QUIZ MODE ── -->
+<div id="quizMode" class="hidden">
+
+  <!-- Quiz type selector -->
+  <div class="quiz-type-tabs">
+    <button class="qttab active" id="qtMeaning" onclick="setQuizType('meaning')">🈯 單字配義</button>
+    <button class="qttab" id="qtFill"    onclick="setQuizType('fill')">✍️ 例句填空</button>
+    <button class="qttab" id="qtId"      onclick="setQuizType('id')">🔠 看中選印</button>
+  </div>
+
+  <!-- Score bar -->
+  <div class="quiz-score-row">
+    <span>本回合成績</span>
+    <span class="quiz-score-val" id="qScoreDisp">0 / 0</span>
+  </div>
+
+  <!-- Meaning quiz -->
+  <div id="qMeaningPane">
+    <div class="quiz-q">
+      <div class="quiz-prompt">這個印尼語單字是什麼意思？</div>
+      <div class="quiz-word-display" id="qWord">—</div>
+      <button class="quiz-speak-btn" id="qSpeakBtn" onclick="speakQuizWord()">🔊 聆聽發音</button>
+    </div>
+    <div class="quiz-opts" id="qOpts"></div>
+  </div>
+
+  <!-- Fill-blank quiz -->
+  <div id="qFillPane" class="hidden">
+    <div class="quiz-q">
+      <div class="quiz-prompt">請在空格中填入正確的印尼語單字</div>
+    </div>
+    <div class="fillblank-sentence" id="qFillSentence"></div>
+    <button class="blank-submit" id="qFillSubmit" onclick="submitFill()">確認答案</button>
+  </div>
+
+  <!-- Look-at-Chinese, choose-Indonesian quiz -->
+  <div id="qIdPane" class="hidden">
+    <div class="quiz-q">
+      <div class="quiz-prompt">看中文意思，選出正確的印尼語單字</div>
+      <div class="quiz-word-display" id="qIdWord" style="font-size:32px">—</div>
+    </div>
+    <div class="quiz-opts" id="qIdOpts"></div>
+  </div>
+
+  <div class="quiz-feedback hidden" id="qFeedback"></div>
+  <button class="btn-primary hidden" id="qNext" onclick="nextQuiz()">下一題 →</button>
+</div>
+
+<!-- ── READING MODE ── -->
+<div id="readingMode" class="hidden">
+  <div class="reading-card" id="readingCard">
+    <div class="reading-header">
+      <div class="reading-type-badge" id="readingTypeBadge">對話</div>
+      <div class="reading-title" id="readingTitle">今日情境</div>
+      <div class="reading-subtitle" id="readingSubtitle"></div>
+    </div>
+    <div class="reading-body" id="readingBody"></div>
+    <div class="reading-vocab" id="readingVocab"></div>
+    <div class="reading-actions">
+      <button class="reading-speak-btn" id="readingSpeakBtn" onclick="speakReadingText()">🔊 朗讀全文</button>
+      <button class="reading-speak-btn" onclick="stopSpeaking()" style="border-color:rgba(200,80,42,0.3);color:var(--red);background:rgba(200,80,42,0.06)">⏹ 停止</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── SAVED EXAMPLES MODE ── -->
+<div id="savedMode" class="hidden">
+  <div class="saved-header">
+    <div class="saved-header-left">
+      <span class="saved-count-badge" id="savedCountBadge">0 則例句</span>
+      <span style="font-size:12px;color:var(--muted)">點擊例句可聆聽朗讀</span>
+    </div>
+    <button class="saved-clear-btn" onclick="clearAllSaved()">🗑 清除全部</button>
+  </div>
+  <div id="savedList" class="saved-list"></div>
+  <div id="savedEmpty" class="saved-empty hidden">
+    <div class="saved-empty-icon">🔖</div>
+    <div class="saved-empty-title">尚無儲存的例句</div>
+    <div class="saved-empty-sub">在閃卡背面點擊「🔖 儲存例句」，即可將例句加入此處</div>
+  </div>
+</div>
+
+</div><!-- /app -->
+
+<!-- SAVE TOAST -->
+<div class="save-toast" id="saveToast">💾 進度已儲存</div>
+
+<script>
+// ═══════════════════════════════════════════
+// VOCABULARY DATABASE
+// ═══════════════════════════════════════════
+
+const WEEKS_META = [
+  { week:1,  title:'日常生活與基礎詞彙', days: ['日常生活基礎','食物與飲料','交通與出行','住家與環境','購物與金錢','時間與日期','人物描述'] },
+  { week:2,  title:'工作與教育', days: ['職業與工作場所','辦公室詞彙','教育與學校','學科與技能','求職與面試','薪資與福利','升遷與職涯'] },
+  { week:3,  title:'時事與社會', days: ['新聞與媒體','政治與政府','社會議題','法律與制度','選舉與民主','犯罪與治安','公民與權利'] },
+  { week:4,  title:'環境與健康', days: ['自然與環境','氣候與天氣','生態與保育','健康與身體','疾病與症狀','醫療與藥物','飲食與營養'] },
+  { week:5,  title:'科技與創新', days: ['科技與數位','網路與社群','手機與應用程式','人工智慧','電腦與程式','科學與研究','創新與發明'] },
+  { week:6,  title:'經濟與商業', days: ['經濟基礎','貿易與市場','企業與公司','金融與銀行','投資與股市','進出口','創業與新創'] },
+  { week:7,  title:'文化與藝術', days: ['印尼文化','宗教與信仰','藝術與音樂','文學與詩歌','電影與戲劇','節日與慶典','傳統與習俗'] },
+  { week:8,  title:'進階文法連接詞', days: ['因果連接詞','轉折連接詞','條件句型','比較句型','讓步句型','強調副詞','複雜句結構'] },
+  { week:9,  title:'學術閱讀詞彙', days: ['學術寫作用語','論證與分析','研究方法','數據與統計','引述與參考','評論與批判','結論與建議'] },
+  { week:10, title:'議論與辯論', days: ['表達意見','同意與反對','舉例與說明','比較與對比','讓步與反駁','結論與總結','辯論策略'] },
+  { week:11, title:'閱讀理解高頻詞', days: ['敘事文詞彙','說明文詞彙','議論文詞彙','應用文詞彙','新聞報導詞彙','學術文章詞彙','混合文體詞彙'] },
+  { week:12, title:'口說表達進階', days: ['開場白與自介','敘述事件','表達感受','給予建議','詢問與確認','道歉與感謝','正式場合用語'] },
+  { week:13, title:'UKBI題型衝刺', days: ['閱讀題型1','閱讀題型2','聽力詞彙','詞彙辨析','同義詞','反義詞','成語與慣用語'] },
+  { week:14, title:'弱點強化與總複習', days: ['易混淆詞彙A','易混淆詞彙B','前綴詞彙','後綴詞彙','複合詞彙','片語動詞','正式vs非正式'] },
+  { week:15, title:'最終衝刺', days: ['高頻核心詞彙A','高頻核心詞彙B','高頻核心詞彙C','考前複習A','考前複習B','考前複習C','模擬考前熱身'] },
+];
+
+const WORD_BANK = [
+['bangun','ba-ngun','verba (動詞)','起床','Saya bangun pukul enam setiap hari.','我每天六點起床。'],
+['tidur','ti-dur','verba (動詞)','睡覺','Dia tidur terlalu larut malam.','他睡得太晚了。'],
+['mandi','man-di','verba (動詞)','洗澡','Saya mandi dua kali sehari.','我每天洗兩次澡。'],
+['sarapan','sa-ra-pan','nomina (名詞)','早餐','Jangan lupa sarapan sebelum berangkat.','出發前別忘記吃早餐。'],
+['berangkat','be-rang-kat','verba (動詞)','出發','Kami berangkat pukul tujuh pagi.','我們早上七點出發。'],
+['pulang','pu-lang','verba (動詞)','回家','Ayah pulang kerja jam lima sore.','爸爸下午五點下班回家。'],
+['makan malam','ma-kan ma-lam','frasa (片語)','晚餐','Kami makan malam bersama keluarga.','我們和家人一起吃晚餐。'],
+['istirahat','is-ti-ra-hat','verba (動詞)','休息','Ambil waktu untuk istirahat sejenak.','花點時間稍微休息一下。'],
+['berolahraga','be-ro-lah-ra-ga','verba (動詞)','運動','Dia berolahraga setiap pagi di taman.','他每天早上在公園運動。'],
+['berbelanja','ber-be-lan-ja','verba (動詞)','購物','Ibu berbelanja di pasar setiap minggu.','媽媽每週去市場購物。'],
+['memasak','me-ma-sak','verba (動詞)','煮飯','Nenek memasak makanan yang lezat.','奶奶煮了美味的食物。'],
+['membersihkan','mem-ber-sih-kan','verba (動詞)','清理、打掃','Saya membersihkan rumah setiap Sabtu.','我每週六打掃房子。'],
+['bertemu','ber-te-mu','verba (動詞)','見面','Kami bertemu di kafe favorit kami.','我們在我們最喜歡的咖啡廳見面。'],
+['mengobrol','meng-ob-rol','verba (動詞)','聊天','Mereka mengobrol sambil minum kopi.','他們一邊喝咖啡一邊聊天。'],
+['menonton','me-non-ton','verba (動詞)','觀看','Keluarga kami menonton film bersama.','我們家人一起看電影。'],
+['membaca','mem-ba-ca','verba (動詞)','閱讀','Dia membaca buku sebelum tidur.','他睡前閱讀書籍。'],
+['mendengarkan','men-de-ngar-kan','verba (動詞)','聆聽','Saya suka mendengarkan musik jazz.','我喜歡聆聽爵士樂。'],
+['berjalan','ber-ja-lan','verba (動詞)','走路','Kami berjalan kaki ke sekolah.','我們走路去學校。'],
+['tertawa','ter-ta-wa','verba (動詞)','笑','Mereka tertawa bersama-sama.','他們一起笑了。'],
+['menangis','me-na-ngis','verba (動詞)','哭','Anak itu menangis karena jatuh.','那個孩子因為跌倒而哭了。'],
+['nasi','na-si','nomina (名詞)','米飯','Nasi adalah makanan pokok orang Indonesia.','米飯是印尼人的主食。'],
+['ayam','a-yam','nomina (名詞)','雞肉','Ayam goreng adalah makanan favoritku.','炸雞是我最喜歡的食物。'],
+['ikan','i-kan','nomina (名詞)','魚','Ikan bakar ini sangat lezat.','這烤魚非常美味。'],
+['sayur','sa-yur','nomina (名詞)','蔬菜','Makan sayur baik untuk kesehatan.','吃蔬菜對健康有益。'],
+['buah','bu-ah','nomina (名詞)','水果','Buah-buahan tropis banyak di Indonesia.','印尼有很多熱帶水果。'],
+['minuman','mi-num-an','nomina (名詞)','飲料','Minuman favorit saya adalah teh hijau.','我最喜歡的飲料是綠茶。'],
+['kopi','ko-pi','nomina (名詞)','咖啡','Kopi Indonesia terkenal di seluruh dunia.','印尼咖啡聞名全世界。'],
+['teh','teh','nomina (名詞)','茶','Teh panas sangat enak diminum di pagi hari.','早上喝熱茶非常舒服。'],
+['roti','ro-ti','nomina (名詞)','麵包','Saya sarapan roti bakar setiap hari.','我每天早餐吃吐司。'],
+['telur','te-lur','nomina (名詞)','雞蛋','Telur adalah sumber protein yang baik.','雞蛋是良好的蛋白質來源。'],
+['daging','da-ging','nomina (名詞)','肉類','Daging sapi harganya mahal sekarang.','牛肉現在很貴。'],
+['sup','sup','nomina (名詞)','湯','Sup ayam sangat cocok dimakan saat hujan.','雨天喝雞湯非常適合。'],
+['pedas','pe-das','adjektiva (形容詞)','辣的','Makanan Indonesia sering pedas.','印尼食物經常是辣的。'],
+['manis','ma-nis','adjektiva (形容詞)','甜的','Kue ini terlalu manis untukku.','這個蛋糕對我來說太甜了。'],
+['asin','a-sin','adjektiva (形容詞)','鹹的','Sup ini terlalu asin.','這道湯太鹹了。'],
+['asam','a-sam','adjektiva (形容詞)','酸的','Jeruk nipis rasanya asam.','萊姆嚐起來是酸的。'],
+['gurih','gu-rih','adjektiva (形容詞)','鮮美的、香濃的','Rendang sangat gurih dan lezat.','仁當非常鮮美可口。'],
+['segar','se-gar','adjektiva (形容詞)','清爽的、新鮮的','Jus buah ini sangat segar.','這果汁非常清爽。'],
+['panas','pa-nas','adjektiva (形容詞)','熱的','Hati-hati, makanan ini masih panas.','小心，這食物還是熱的。'],
+['dingin','di-ngin','adjektiva (形容詞)','冷的','Es krim ini dingin dan enak.','這冰淇淋冰冷又好吃。'],
+['mobil','mo-bil','nomina (名詞)','汽車','Ayah pergi ke kantor naik mobil.','爸爸開車去公司。'],
+['motor','mo-tor','nomina (名詞)','機車','Motor adalah kendaraan yang paling banyak digunakan.','機車是使用最廣泛的交通工具。'],
+['bis','bis','nomina (名詞)','公車','Saya naik bis ke kampus setiap hari.','我每天搭公車去校園。'],
+['kereta','ke-re-ta','nomina (名詞)','火車','Kereta api menghubungkan kota-kota besar.','火車連接各大城市。'],
+['pesawat','pe-sa-wat','nomina (名詞)','飛機','Penerbangan dengan pesawat hanya 2 jam.','搭飛機只要兩個小時。'],
+['taksi','tak-si','nomina (名詞)','計程車','Saya memesan taksi online.','我叫了一台網路計程車。'],
+['jalan','ja-lan','nomina (名詞)','道路、走路','Jalan ini selalu ramai saat pagi hari.','這條路早上總是很擁擠。'],
+['stasiun','sta-si-un','nomina (名詞)','火車站','Stasiun Gambir adalah stasiun terbesar di Jakarta.','甘比爾站是雅加達最大的火車站。'],
+['bandara','ban-da-ra','nomina (名詞)','機場','Bandara Soekarno-Hatta sangat luas.','蘇卡諾-哈達機場非常廣大。'],
+['pelabuhan','pe-la-bu-han','nomina (名詞)','港口','Pelabuhan ini melayani ribuan kapal setiap tahun.','這個港口每年服務數千艘船。'],
+['kemacetan','ke-ma-ce-tan','nomina (名詞)','交通堵塞','Kemacetan di Jakarta sudah terkenal.','雅加達的交通堵塞已經很有名了。'],
+['tiket','ti-ket','nomina (名詞)','票、車票','Beli tiket kereta lebih murah online.','網路購買火車票更便宜。'],
+['jadwal','jad-wal','nomina (名詞)','時刻表、時程','Jadwal penerbangan bisa dilihat di aplikasi.','航班時刻表可以在應用程式上查看。'],
+['perjalanan','per-ja-la-nan','nomina (名詞)','旅程','Perjalanan ini memakan waktu tiga jam.','這趟旅程需要三個小時。'],
+['pengemudi','pe-nge-mu-di','nomina (名詞)','司機','Pengemudi taksi itu sangat ramah.','那位計程車司機非常友善。'],
+['penumpang','pe-num-pang','nomina (名詞)','乘客','Penumpang diminta duduk dengan tertib.','乘客被要求安靠就坐。'],
+['penyeberangan','pe-nye-be-rang-an','nomina (名詞)','斑馬線、渡口','Gunakan penyeberangan yang tersedia.','請使用現有的斑馬線。'],
+['parkir','par-kir','verba/nomina (動/名詞)','停車','Parkir di sini tidak diperbolehkan.','這裡不允許停車。'],
+['bahan bakar','ba-han ba-kar','nomina (名詞)','燃料','Harga bahan bakar naik bulan ini.','這個月燃料價格上漲了。'],
+['kemudi','ke-mu-di','nomina (名詞)','方向盤','Pegang kemudi dengan baik.','好好握住方向盤。'],
+['rumah','ru-mah','nomina (名詞)','房子、家','Rumah kami terletak di pinggir kota.','我們的房子位於郊區。'],
+['kamar','ka-mar','nomina (名詞)','房間','Kamar ini sangat nyaman dan bersih.','這個房間非常舒適乾淨。'],
+['dapur','da-pur','nomina (名詞)','廚房','Ibu sedang memasak di dapur.','媽媽正在廚房煮飯。'],
+['kamar mandi','ka-mar man-di','nomina (名詞)','浴室','Kamar mandi ada di sebelah kanan.','浴室在右邊。'],
+['ruang tamu','ru-ang ta-mu','nomina (名詞)','客廳','Tamu duduk di ruang tamu.','客人坐在客廳裡。'],
+['taman','ta-man','nomina (名詞)','花園、公園','Anak-anak bermain di taman.','孩子們在公園玩耍。'],
+['jendela','jen-de-la','nomina (名詞)','窗戶','Tolong buka jendelanya, gerah sekali.','請打開窗戶，很悶熱。'],
+['pintu','pin-tu','nomina (名詞)','門','Pintu belakang harus selalu dikunci.','後門必須隨時鎖上。'],
+['lantai','lan-tai','nomina (名詞)','地板、樓層','Lantai kamarku terbuat dari kayu.','我房間的地板是木製的。'],
+['atap','a-tap','nomina (名詞)','屋頂','Atap rumah bocor karena hujan deras.','因為大雨，屋頂漏水了。'],
+['tangga','tang-ga','nomina (名詞)','樓梯','Tangga ini cukup curam.','這樓梯相當陡。'],
+['listrik','lis-trik','nomina (名詞)','電力','Listrik padam semalam selama dua jam.','昨晚停電了兩個小時。'],
+['air','air','nomina (名詞)','水','Air bersih adalah kebutuhan dasar.','乾淨的水是基本需求。'],
+['furnitur','fur-ni-tur','nomina (名詞)','家具','Furnitur baru sudah tiba hari ini.','新家具今天到了。'],
+['televisi','te-le-vi-si','nomina (名詞)','電視','Televisi di ruang tamu sangat besar.','客廳的電視非常大。'],
+['lemari','le-ma-ri','nomina (名詞)','衣櫃','Lemari ini penuh dengan baju.','這個衣櫃裡面裝滿了衣服。'],
+['meja','me-ja','nomina (名詞)','桌子','Taruh buku di atas meja belajar.','把書放在書桌上。'],
+['kursi','kur-si','nomina (名詞)','椅子','Kursi ini sangat nyaman untuk duduk.','這把椅子坐起來很舒服。'],
+['ranjang','ran-jang','nomina (名詞)','床','Ranjang baru ini sangat empuk.','這張新床非常柔軟。'],
+['bantal','ban-tal','nomina (名詞)','枕頭','Saya butuh bantal yang lebih tinggi.','我需要一個更高的枕頭。'],
+['harga','har-ga','nomina (名詞)','價格','Harga barang-barang naik bulan ini.','這個月物品的價格上漲了。'],
+['diskon','dis-kon','nomina (名詞)','折扣','Ada diskon besar di toko ini.','這家店有大特賣。'],
+['murah','mu-rah','adjektiva (形容詞)','便宜的','Harga di pasar tradisional lebih murah.','傳統市場的價格更便宜。'],
+['mahal','ma-hal','adjektiva (形容詞)','昂貴的','Berlian ini sangat mahal harganya.','這顆鑽石非常昂貴。'],
+['toko','to-ko','nomina (名詞)','商店','Toko itu buka dari jam 8 pagi.','那家店從早上八點開始營業。'],
+['pasar','pa-sar','nomina (名詞)','市場','Pasar tradisional selalu ramai.','傳統市場總是很熱鬧。'],
+['kasir','ka-sir','nomina (名詞)','收銀台','Antre di kasir sangat panjang.','收銀台排隊排得很長。'],
+['pembayaran','pem-ba-yar-an','nomina (名詞)','付款','Pembayaran bisa dilakukan secara digital.','付款可以用數位方式進行。'],
+['tunai','tu-nai','adjektiva (形容詞)','現金的','Saya bayar tunai, tidak pakai kartu.','我付現金，不用刷卡。'],
+['kartu kredit','kar-tu kre-dit','nomina (名詞)','信用卡','Boleh saya bayar dengan kartu kredit?','我可以用信用卡付款嗎？'],
+['struk','struk','nomina (名詞)','收據','Tolong berikan struk pembeliannya.','請給我購買收據。'],
+['ukuran','u-ku-ran','nomina (名詞)','尺寸','Ukuran sepatu saya adalah 42.','我的鞋子尺寸是42號。'],
+['warna','war-na','nomina (名詞)','顏色','Saya suka warna biru untuk baju ini.','我喜歡這件衣服的藍色。'],
+['mode','mo-de','nomina (名詞)','時尚、流行','Mode pakaian terus berubah setiap musim.','服裝時尚每個季節都在改變。'],
+['merek','me-rek','nomina (名詞)','品牌','Merek ini sangat terkenal di Indonesia.','這個品牌在印尼非常有名。'],
+['kualitas','kua-li-tas','nomina (名詞)','品質','Kualitas produk ini sangat baik.','這個產品的品質非常好。'],
+['garansi','ga-ran-si','nomina (名詞)','保固','Produk ini ada garansi satu tahun.','這個產品有一年保固。'],
+['pengembalian','peng-em-ba-li-an','nomina (名詞)','退貨、退款','Proses pengembalian barang sangat mudah.','退貨流程非常簡單。'],
+['antre','an-tre','verba (動詞)','排隊','Kami harus antre selama satu jam.','我們必須排隊一個小時。'],
+['tawar','ta-war','verba (動詞)','議價','Boleh saya tawar harga barang ini?','我可以議這件商品的價嗎？'],
+['waktu','wak-tu','nomina (名詞)','時間','Waktu adalah hal yang sangat berharga.','時間是非常寶貴的東西。'],
+['hari','ha-ri','nomina (名詞)','天、日','Hari ini cuaca sangat cerah.','今天天氣非常晴朗。'],
+['minggu','ming-gu','nomina (名詞)','星期、週','Minggu depan ada liburan panjang.','下週有長假。'],
+['bulan','bu-lan','nomina (名詞)','月份、月亮','Bulan Agustus adalah bulan kemerdekaan Indonesia.','八月是印尼的獨立月份。'],
+['tahun','ta-hun','nomina (名詞)','年','Tahun ini penuh dengan tantangan.','今年充滿了挑戰。'],
+['pagi','pa-gi','nomina (名詞)','早上','Saya selalu berolahraga di pagi hari.','我總是在早上運動。'],
+['siang','si-ang','nomina (名詞)','中午、白天','Siang hari sangat panas di sini.','這裡白天非常熱。'],
+['sore','so-re','nomina (名詞)','下午（3-6點）','Kami bertemu sore hari di kafe.','我們下午在咖啡廳見面。'],
+['malam','ma-lam','nomina (名詞)','晚上','Malam ini ada pertunjukan musik.','今晚有音樂表演。'],
+['kemarin','ke-ma-rin','adverbia (副詞)','昨天','Kemarin saya pergi ke rumah sakit.','昨天我去了醫院。'],
+['hari ini','ha-ri i-ni','adverbia (副詞)','今天','Hari ini adalah hari yang spesial.','今天是特別的一天。'],
+['besok','be-sok','adverbia (副詞)','明天','Besok saya ada ujian penting.','明天我有重要考試。'],
+['lusa','lu-sa','adverbia (副詞)','後天','Pertemuan dijadwalkan lusa.','會議定在後天。'],
+['tadi','ta-di','adverbia (副詞)','剛才','Tadi ada yang meneleponmu.','剛才有人打電話給你。'],
+['sekarang','se-ka-rang','adverbia (副詞)','現在','Sekarang bukan waktu yang tepat.','現在不是適當的時機。'],
+['nanti','nan-ti','adverbia (副詞)','待會、以後','Nanti kita bahas lagi masalah ini.','待會我們再討論這個問題。'],
+['sudah','su-dah','adverbia (副詞)','已經','Saya sudah makan siang.','我已經吃過午飯了。'],
+['belum','be-lum','adverbia (副詞)','還沒','Dia belum tiba di sini.','他還沒有到這裡。'],
+['sedang','se-dang','adverbia (副詞)','正在','Ibu sedang memasak di dapur.','媽媽正在廚房煮飯。'],
+['akan','a-kan','adverbia (副詞)','將要','Kami akan berlibur ke Bali.','我們將要去巴里島度假。'],
+['tinggi','ting-gi','adjektiva (形容詞)','高的','Dia sangat tinggi dan atletis.','他非常高且健壯。'],
+['pendek','pen-dek','adjektiva (形容詞)','矮的、短的','Rambutnya pendek dan rapi.','他的頭髮短而整齊。'],
+['gemuk','ge-muk','adjektiva (形容詞)','胖的','Kucing kami sangat gemuk dan lucu.','我們的貓非常胖且可愛。'],
+['kurus','ku-rus','adjektiva (形容詞)','瘦的','Dia terlihat kurus setelah sakit.','他生病後看起來很瘦。'],
+['cantik','can-tik','adjektiva (形容詞)','美麗的（女）','Wanita itu sangat cantik.','那位女性非常美麗。'],
+['tampan','tam-pan','adjektiva (形容詞)','英俊的','Pria itu sangat tampan.','那位男性非常英俊。'],
+['ramah','ra-mah','adjektiva (形容詞)','友善的','Penduduk lokal sangat ramah kepada turis.','當地居民對遊客非常友善。'],
+['sombong','som-bong','adjektiva (形容詞)','驕傲自大的','Dia terkenal sebagai orang yang sombong.','他以傲慢出名。'],
+['pintar','pin-tar','adjektiva (形容詞)','聰明的','Anak itu sangat pintar di sekolah.','那個孩子在學校非常聰明。'],
+['rajin','ra-jin','adjektiva (形容詞)','勤奮的','Mahasiswa yang rajin pasti akan sukses.','勤奮的學生一定會成功。'],
+['malas','ma-las','adjektiva (形容詞)','懶惰的','Dia terlalu malas untuk berolahraga.','他太懶了，不肯運動。'],
+['jujur','ju-jur','adjektiva (形容詞)','誠實的','Kejujuran adalah nilai yang paling penting.','誠實是最重要的價值觀。'],
+['sabar','sa-bar','adjektiva (形容詞)','耐心的','Guru yang baik harus sabar.','好老師必須有耐心。'],
+['pemarah','pe-ma-rah','adjektiva (形容詞)','易怒的','Dia dikenal sebagai orang yang pemarah.','他以脾氣暴躁出名。'],
+['pemalu','pe-ma-lu','adjektiva (形容詞)','害羞的','Anak yang pemalu sulit untuk bicara di depan.','害羞的孩子很難在眾人面前說話。'],
+['pemberani','pem-be-ra-ni','adjektiva (形容詞)','勇敢的','Pemadam kebakaran adalah orang yang pemberani.','消防員是勇敢的人。'],
+['pekerja keras','pe-ker-ja ke-ras','adjektiva (形容詞)','努力工作的','Dia adalah pekerja keras yang selalu berdedikasi.','他是一個始終敬業的努力工作者。'],
+['kreatif','kre-a-tif','adjektiva (形容詞)','有創意的','Desainer itu sangat kreatif dalam kerjanya.','那位設計師工作非常有創意。'],
+['bersemangat','ber-se-ma-ngat','adjektiva (形容詞)','熱情的','Murid-murid itu bersemangat mengikuti pelajaran.','那些學生熱情地上課。'],
+['rendah hati','ren-dah ha-ti','adjektiva (形容詞)','謙遜的','Meskipun sukses, dia tetap rendah hati.','儘管成功，他仍然謙遜。'],
+['pekerjaan','pe-ker-ja-an','nomina (名詞)','工作、職業','Pekerjaan impian saya adalah dokter.','我夢想的職業是醫生。'],
+['kantor','kan-tor','nomina (名詞)','辦公室','Saya bekerja di kantor pusat.','我在總部工作。'],
+['rapat','ra-pat','nomina (名詞)','會議','Rapat hari ini sangat penting.','今天的會議非常重要。'],
+['atasan','a-ta-san','nomina (名詞)','上司','Atasannya sangat menghargai hasil kerjanya.','他的上司非常賞識他的工作成果。'],
+['karyawan','kar-ya-wan','nomina (名詞)','員工','Karyawan baru akan mulai besok.','新員工明天開始上班。'],
+['gaji','ga-ji','nomina (名詞)','薪水','Gaji bulan ini sudah ditransfer.','這個月的薪水已經匯過去了。'],
+['pengalaman','peng-a-la-man','nomina (名詞)','經驗','Pengalaman kerja sangat dihargai.','工作經驗非常被重視。'],
+['kemampuan','ke-mam-pu-an','nomina (名詞)','能力','Kemampuan bahasa asing sangat berguna.','外語能力非常有用。'],
+['prestasi','pres-ta-si','nomina (名詞)','成就','Prestasi kerjanya sangat membanggakan.','他的工作成就非常令人驕傲。'],
+['karier','ka-ri-er','nomina (名詞)','職涯','Dia memiliki karier yang cemerlang.','他有著輝煌的職涯。'],
+['pendidikan','pen-di-di-kan','nomina (名詞)','教育','Pendidikan adalah investasi terbaik.','教育是最好的投資。'],
+['universitas','u-ni-ver-si-tas','nomina (名詞)','大學','Dia kuliah di universitas ternama.','他在知名大學就讀。'],
+['jurusan','ju-ru-san','nomina (名詞)','科系','Jurusan apa yang kamu ambil?','你讀哪個科系？'],
+['dosen','do-sen','nomina (名詞)','大學教授','Dosen itu sangat berpengalaman.','那位教授非常有經驗。'],
+['mahasiswa','ma-ha-sis-wa','nomina (名詞)','大學生','Mahasiswa itu rajin mengikuti kuliah.','那位大學生勤奮地上課。'],
+['kurikulum','ku-ri-ku-lum','nomina (名詞)','課程綱要','Kurikulum baru akan diterapkan tahun depan.','新課程綱要明年開始實施。'],
+['beasiswa','be-a-sis-wa','nomina (名詞)','獎學金','Dia mendapat beasiswa penuh ke luar negeri.','他獲得了全額出國獎學金。'],
+['penelitian','pe-ne-li-ti-an','nomina (名詞)','研究','Penelitian ini membutuhkan waktu bertahun-tahun.','這項研究需要多年時間。'],
+['skripsi','skrip-si','nomina (名詞)','學士論文','Skripsinya membahas tentang lingkungan hidup.','他的論文探討了環境問題。'],
+['wisuda','wi-su-da','nomina (名詞)','畢業典禮','Wisuda tahun ini diadakan secara offline.','今年的畢業典禮是實體舉行的。'],
+['berita','be-ri-ta','nomina (名詞)','新聞','Berita hari ini sangat mengejutkan.','今天的新聞非常令人震驚。'],
+['pemerintah','pe-me-rin-tah','nomina (名詞)','政府','Pemerintah mengeluarkan kebijakan baru.','政府發布了新政策。'],
+['kebijakan','ke-bi-ja-kan','nomina (名詞)','政策','Kebijakan ini bertujuan mengurangi kemiskinan.','這項政策旨在減少貧困。'],
+['masyarakat','ma-sya-ra-kat','nomina (名詞)','社會、民眾','Masyarakat perlu dilibatkan dalam keputusan ini.','民眾需要參與這項決策。'],
+['demokrasi','de-mok-ra-si','nomina (名詞)','民主','Demokrasi membutuhkan partisipasi aktif warga.','民主需要公民積極參與。'],
+['pemilihan','pe-mi-li-han','nomina (名詞)','選舉','Pemilihan umum diadakan setiap lima tahun.','大選每五年舉行一次。'],
+['undang-undang','un-dang-un-dang','nomina (名詞)','法律','Undang-undang ini baru saja disahkan.','這條法律剛剛獲得通過。'],
+['keadilan','ke-a-di-lan','nomina (名詞)','正義、公平','Keadilan harus ditegakkan untuk semua.','正義必須為所有人伸張。'],
+['kemiskinan','ke-mis-ki-nan','nomina (名詞)','貧困','Program ini bertujuan mengentaskan kemiskinan.','這個計畫旨在消除貧困。'],
+['pengangguran','peng-ang-gur-an','nomina (名詞)','失業','Angka pengangguran turun tahun ini.','今年失業率下降了。'],
+['korupsi','ko-rup-si','nomina (名詞)','貪腐','Korupsi merusak sistem pemerintahan.','貪腐破壞了政府體制。'],
+['transparansi','trans-pa-ran-si','nomina (名詞)','透明度','Transparansi sangat penting dalam pemerintahan.','透明度在政府治理中非常重要。'],
+['hak asasi','hak a-sa-si','nomina (名詞)','人權','Hak asasi manusia harus dilindungi.','人權必須受到保護。'],
+['kebebasan','ke-be-ba-san','nomina (名詞)','自由','Kebebasan berbicara adalah hak dasar.','言論自由是基本權利。'],
+['kesetaraan','ke-se-ta-ra-an','nomina (名詞)','平等','Kesetaraan gender masih perlu diperjuangkan.','性別平等仍需要努力爭取。'],
+['diskriminasi','dis-kri-mi-na-si','nomina (名詞)','歧視','Diskriminasi dalam bentuk apapun tidak dapat ditoleransi.','任何形式的歧視都不可容忍。'],
+['toleransi','to-le-ran-si','nomina (名詞)','寬容','Toleransi antaragama sangat penting di Indonesia.','宗教間的寬容在印尼非常重要。'],
+['persatuan','per-sa-tu-an','nomina (名詞)','團結','Persatuan bangsa harus dijaga.','民族團結必須維護。'],
+['unjuk rasa','un-juk ra-sa','nomina (名詞)','示威、抗議','Unjuk rasa berlangsung dengan damai.','抗議活動和平進行。'],
+['peraturan','per-a-tur-an','nomina (名詞)','規定','Peraturan ini wajib dipatuhi semua orang.','這個規定所有人都必須遵守。'],
+['lingkungan','ling-kung-an','nomina (名詞)','環境','Kita harus menjaga lingkungan hidup.','我們必須保護生活環境。'],
+['polusi','po-lu-si','nomina (名詞)','污染','Polusi udara semakin parah di kota.','城市裡的空氣污染越來越嚴重。'],
+['perubahan iklim','pe-ru-ba-han ik-lim','nomina (名詞)','氣候變化','Perubahan iklim menjadi ancaman global.','氣候變化成為全球威脅。'],
+['bencana alam','ben-ca-na a-lam','nomina (名詞)','自然災害','Bencana alam melanda daerah itu.','自然災害襲擊了那個地區。'],
+['daur ulang','da-ur u-lang','nomina (名詞)','回收再利用','Program daur ulang sangat penting.','回收計畫非常重要。'],
+['berkelanjutan','ber-ke-lan-jut-an','adjektiva (形容詞)','永續的','Pembangunan berkelanjutan menjadi prioritas.','永續發展成為優先事項。'],
+['konservasi','kon-ser-va-si','nomina (名詞)','保育','Konservasi hutan sangat mendesak.','森林保育非常迫切。'],
+['keanekaragaman','ke-a-ne-ka-ra-ga-man','nomina (名詞)','多樣性','Keanekaragaman hayati Indonesia sangat kaya.','印尼的生物多樣性非常豐富。'],
+['kesehatan','ke-se-ha-tan','nomina (名詞)','健康','Kesehatan adalah aset paling berharga.','健康是最寶貴的資產。'],
+['penyakit','pe-nya-kit','nomina (名詞)','疾病','Penyakit ini dapat dicegah dengan vaksin.','這種疾病可以透過疫苗預防。'],
+['gejala','ge-ja-la','nomina (名詞)','症狀','Gejala flu meliputi demam dan batuk.','流感症狀包括發燒和咳嗽。'],
+['obat','o-bat','nomina (名詞)','藥物','Minumlah obat ini tiga kali sehari.','這種藥一天吃三次。'],
+['dokter','dok-ter','nomina (名詞)','醫生','Dokter itu sangat berpengalaman.','那位醫生非常有經驗。'],
+['rumah sakit','ru-mah sa-kit','nomina (名詞)','醫院','Rumah sakit ini dilengkapi peralatan modern.','這家醫院配備了現代設備。'],
+['pemeriksaan','pe-me-rik-sa-an','nomina (名詞)','檢查','Pemeriksaan kesehatan rutin sangat disarankan.','定期健康檢查非常建議。'],
+['imunisasi','i-mu-ni-sa-si','nomina (名詞)','免疫接種','Imunisasi anak harus dilakukan tepat waktu.','兒童免疫接種必須按時進行。'],
+['gizi','gi-zi','nomina (名詞)','營養','Gizi yang baik penting untuk tumbuh kembang anak.','良好的營養對兒童成長發育很重要。'],
+['pola makan','po-la ma-kan','nomina (名詞)','飲食習慣','Pola makan sehat harus dijaga.','必須維持健康的飲食習慣。'],
+['olahraga','o-lah-ra-ga','nomina (名詞)','運動','Olahraga rutin sangat baik untuk kesehatan.','定期運動對健康非常好。'],
+['stres','stres','nomina (名詞)','壓力（心理）','Stres berlebihan dapat mempengaruhi kesehatan.','過度的壓力會影響健康。'],
+['teknologi','tek-no-lo-gi','nomina (名詞)','科技','Teknologi digital mengubah cara kerja kita.','數位科技改變了我們的工作方式。'],
+['internet','in-ter-net','nomina (名詞)','網路','Akses internet di pedesaan masih terbatas.','農村地區的網路使用仍然有限。'],
+['aplikasi','a-pli-ka-si','nomina (名詞)','應用程式','Aplikasi ini memudahkan kehidupan sehari-hari.','這個應用程式讓日常生活更方便。'],
+['media sosial','me-di-a so-si-al','nomina (名詞)','社交媒體','Media sosial memiliki dampak besar.','社交媒體有很大的影響。'],
+['kecerdasan buatan','ke-cer-das-an bu-at-an','nomina (名詞)','人工智慧','Kecerdasan buatan semakin canggih.','人工智慧越來越先進。'],
+['data','da-ta','nomina (名詞)','數據、資料','Data pribadi harus dijaga kerahasiaannya.','個人資料必須保密。'],
+['keamanan siber','ke-a-man-an si-ber','nomina (名詞)','網路安全','Keamanan siber menjadi isu penting.','網路安全成為重要議題。'],
+['digitalisasi','di-gi-ta-li-sa-si','nomina (名詞)','數位化','Digitalisasi layanan publik terus berkembang.','公共服務的數位化持續發展。'],
+['inovasi','i-no-va-si','nomina (名詞)','創新','Inovasi adalah kunci kemajuan bangsa.','創新是國家進步的關鍵。'],
+['startup','star-tup','nomina (名詞)','新創公司','Startup teknologi Indonesia berkembang pesat.','印尼科技新創公司快速發展。'],
+['perangkat','pe-rang-kat','nomina (名詞)','設備、裝置','Perangkat pintar sudah ada di mana-mana.','智慧設備已經無處不在。'],
+['jaringan','ja-ring-an','nomina (名詞)','網絡、網路','Jaringan 5G mulai berkembang di Indonesia.','5G網路開始在印尼發展。'],
+['platform','plat-form','nomina (名詞)','平台','Platform e-commerce ini sangat populer.','這個電商平台非常受歡迎。'],
+['konten','kon-ten','nomina (名詞)','內容','Konten kreatif sangat diminati di era digital.','創意內容在數位時代非常受歡迎。'],
+['algoritma','al-go-rit-ma','nomina (名詞)','演算法','Algoritma media sosial menentukan apa yang kita lihat.','社交媒體的演算法決定了我們看到什麼。'],
+['enkripsi','en-krip-si','nomina (名詞)','加密','Enkripsi melindungi data dari akses tidak sah.','加密保護資料免受未授權訪問。'],
+['pembaruan','pem-ba-ru-an','nomina (名詞)','更新','Pembaruan sistem perlu dilakukan secara berkala.','系統更新需要定期進行。'],
+['cadangan','ca-dang-an','nomina (名詞)','備份','Selalu buat cadangan data penting.','始終備份重要資料。'],
+['virus komputer','vi-rus kom-pu-ter','nomina (名詞)','電腦病毒','Virus komputer bisa merusak data penting.','電腦病毒可能損壞重要資料。'],
+['kode program','ko-de pro-gram','nomina (名詞)','程式碼','Kode program harus ditulis dengan rapi.','程式碼必須寫得整齊。'],
+['ekonomi','e-ko-no-mi','nomina (名詞)','經濟','Ekonomi Indonesia terus berkembang pesat.','印尼經濟持續快速發展。'],
+['perdagangan','per-da-gang-an','nomina (名詞)','貿易','Perdagangan internasional Indonesia meningkat.','印尼國際貿易增加了。'],
+['investasi','in-ves-ta-si','nomina (名詞)','投資','Investasi asing sangat dibutuhkan Indonesia.','印尼非常需要外資投資。'],
+['inflasi','in-fla-si','nomina (名詞)','通貨膨脹','Inflasi yang tinggi merugikan masyarakat.','高通貨膨脹損害了民眾利益。'],
+['pertumbuhan','per-tum-buh-an','nomina (名詞)','成長','Pertumbuhan ekonomi mencapai 5% tahun ini.','今年經濟成長達到5%。'],
+['anggaran','ang-gar-an','nomina (名詞)','預算','Anggaran negara harus digunakan efisien.','國家預算必須有效使用。'],
+['pendapatan','pen-da-pat-an','nomina (名詞)','收入、所得','Pendapatan per kapita terus meningkat.','人均收入持續提高。'],
+['pengeluaran','peng-e-lu-ar-an','nomina (名詞)','支出','Pengeluaran pemerintah naik signifikan.','政府支出大幅增加。'],
+['pajak','pa-jak','nomina (名詞)','稅收','Membayar pajak adalah kewajiban warga negara.','繳稅是公民的義務。'],
+['subsidi','sub-si-di','nomina (名詞)','補貼','Subsidi BBM masih berlanjut tahun ini.','今年燃油補貼仍然繼續。'],
+['ekspor','eks-por','nomina (名詞)','出口','Ekspor kelapa sawit meningkat tajam.','棕櫚油出口大幅增加。'],
+['impor','im-por','nomina (名詞)','進口','Impor barang elektronik sangat besar.','電子產品進口非常龐大。'],
+['kurs','kurs','nomina (名詞)','匯率','Kurs rupiah menguat terhadap dolar.','印尼盾對美元升值。'],
+['modal','mo-dal','nomina (名詞)','資本、本金','Usaha ini membutuhkan modal yang besar.','這門生意需要大量資本。'],
+['keuntungan','ke-un-tung-an','nomina (名詞)','利潤、收益','Keuntungan perusahaan meningkat 30%.','公司利潤增加了30%。'],
+['kerugian','ke-ru-gi-an','nomina (名詞)','損失','Kerugian akibat bencana sangat besar.','因災害造成的損失非常龐大。'],
+['produsen','pro-du-sen','nomina (名詞)','生產者','Produsen lokal perlu mendapat dukungan.','本地生產者需要獲得支持。'],
+['konsumen','kon-su-men','nomina (名詞)','消費者','Hak konsumen harus dilindungi.','消費者權益必須受到保護。'],
+['permintaan','per-min-ta-an','nomina (名詞)','需求（經濟）','Permintaan terhadap produk ini tinggi.','對這個產品的需求很高。'],
+['penawaran','pe-na-war-an','nomina (名詞)','供給（經濟）','Penawaran tidak seimbang dengan permintaan.','供給與需求不平衡。'],
+['kebudayaan','ke-bu-da-ya-an','nomina (名詞)','文化','Kebudayaan Indonesia sangat beragam.','印尼文化非常多元。'],
+['tradisi','tra-di-si','nomina (名詞)','傳統','Tradisi ini masih dijaga hingga kini.','這個傳統至今仍被保留著。'],
+['adat istiadat','a-dat is-ti-a-dat','nomina (名詞)','風俗習慣','Adat istiadat berbeda di setiap daerah.','每個地區的風俗習慣都不同。'],
+['seni','se-ni','nomina (名詞)','藝術','Seni budaya Indonesia diakui dunia.','印尼的文化藝術得到世界認可。'],
+['tari','ta-ri','nomina (名詞)','舞蹈','Tari Saman berasal dari Aceh.','薩曼舞源自亞齊。'],
+['musik','mu-sik','nomina (名詞)','音樂','Musik gamelan sangat khas Jawa.','甘美蘭音樂非常具有爪哇特色。'],
+['lukisan','lu-kis-an','nomina (名詞)','繪畫','Lukisan ini karya seniman terkenal.','這幅畫是著名藝術家的作品。'],
+['batik','ba-tik','nomina (名詞)','蠟染布（爪哇傳統）','Batik adalah warisan budaya Indonesia.','峇迪是印尼的文化遺產。'],
+['wayang','wa-yang','nomina (名詞)','皮影戲','Pertunjukan wayang berlangsung semalam suntuk.','皮影戲表演持續了整晚。'],
+['upacara','u-pa-ca-ra','nomina (名詞)','儀式、典禮','Upacara adat dilakukan dengan khidmat.','傳統儀式以莊重方式舉行。'],
+['warisan','wa-ri-san','nomina (名詞)','遺產','Warisan budaya harus dilestarikan.','文化遺產必須得到保護。'],
+['kepercayaan','ke-per-ca-ya-an','nomina (名詞)','信仰','Setiap orang berhak atas kepercayaannya.','每個人都有權保有自己的信仰。'],
+['toleransi beragama','to-le-ran-si be-ra-ga-ma','nomina (名詞)','宗教寬容','Toleransi beragama harus dijaga.','宗教寬容必須維護。'],
+['festival','fes-ti-val','nomina (名詞)','節慶','Festival budaya diadakan setiap tahun.','文化節慶每年舉辦一次。'],
+['cerita rakyat','ce-ri-ta rak-yat','nomina (名詞)','民間故事','Cerita rakyat mengandung nilai moral.','民間故事包含道德價值觀。'],
+['bahasa daerah','ba-ha-sa da-e-rah','nomina (名詞)','地方語言','Ada ratusan bahasa daerah di Indonesia.','印尼有數百種地方語言。'],
+['keragaman','ke-ra-ga-man','nomina (名詞)','多元性','Keragaman adalah kekuatan bangsa ini.','多元性是這個民族的力量。'],
+['pelestarian','pe-les-ta-ri-an','nomina (名詞)','保育、保護','Pelestarian budaya adalah tanggung jawab bersama.','文化保護是共同的責任。'],
+['kreativitas','kre-a-ti-vi-tas','nomina (名詞)','創造力','Kreativitas seniman lokal sangat tinggi.','當地藝術家的創造力非常高。'],
+['ekspresi','eks-pre-si','nomina (名詞)','表達、表現','Seni adalah bentuk ekspresi jiwa.','藝術是靈魂的表達形式。'],
+['meskipun','mes-ki-pun','konjungsi (連接詞)','雖然、儘管','Meskipun lelah, dia tetap bekerja.','雖然疲倦，他仍然繼續工作。'],
+['walaupun','wa-lau-pun','konjungsi (連接詞)','雖然（同meskipun）','Walaupun hujan, mereka tetap datang.','雖然下雨，他們還是來了。'],
+['sehingga','se-hing-ga','konjungsi (連接詞)','因此、以致於','Dia bekerja keras sehingga berhasil.','他努力工作因此成功了。'],
+['karena','ka-re-na','konjungsi (連接詞)','因為','Saya terlambat karena macet parah.','我因為嚴重塞車而遲到。'],
+['sebab','se-bab','konjungsi (連接詞)','因為（較正式）','Proyek gagal sebab kurangnya dana.','計畫失敗是因為資金不足。'],
+['akibat','a-ki-bat','nomina/konjungsi','結果、由於','Akibat banjir, banyak rumah rusak.','由於洪水，許多房屋損壞。'],
+['oleh karena itu','o-leh ka-re-na i-tu','konjungsi (連接詞)','因此','Oleh karena itu, keputusan ini dibuat.','因此，作出了這個決定。'],
+['sedangkan','se-dang-kan','konjungsi (連接詞)','而、但是（對比）','Dia suka kopi, sedangkan adiknya suka teh.','他喜歡咖啡，而弟弟喜歡茶。'],
+['namun','na-mun','konjungsi (連接詞)','然而','Harganya mahal, namun kualitasnya baik.','價格昂貴，然而品質很好。'],
+['akan tetapi','a-kan te-ta-pi','konjungsi (連接詞)','但是（正式）','Usahanya gagal, akan tetapi dia tidak menyerah.','他的努力失敗了，但是他沒有放棄。'],
+['selain itu','se-la-in i-tu','konjungsi (連接詞)','除此之外','Selain itu, ada keuntungan lain.','除此之外，還有其他好處。'],
+['bahkan','bah-kan','adverbia (副詞)','甚至','Bahkan presiden hadir dalam acara itu.','甚至總統也出席了那個活動。'],
+['justru','jus-tru','adverbia (副詞)','恰恰、偏偏','Justru sebaliknya yang terjadi.','恰恰相反的事情發生了。'],
+['ternyata','ter-nya-ta','adverbia (副詞)','原來','Ternyata dia yang bertanggung jawab.','原來是他負責的。'],
+['sebaliknya','se-ba-lik-nya','adverbia (副詞)','相反地','Sebaliknya, situasinya membaik.','相反地，情況好轉了。'],
+['dengan demikian','de-ngan de-mi-ki-an','konjungsi (連接詞)','如此一來、因而','Dengan demikian, masalah terselesaikan.','如此一來，問題得到解決。'],
+['apabila','a-pa-bi-la','konjungsi (連接詞)','如果、假如（正式）','Apabila cuaca buruk, acara dibatalkan.','如果天氣惡劣，活動取消。'],
+['seandainya','se-an-dai-nya','konjungsi (連接詞)','假使、要是','Seandainya punya lebih banyak waktu...','要是有更多時間的話……'],
+['seolah-olah','se-o-lah-o-lah','konjungsi (連接詞)','好像、彷彿','Dia berbicara seolah-olah tahu segalanya.','他說話彷彿什麼都知道一樣。'],
+['sementara itu','se-men-ta-ra i-tu','konjungsi (連接詞)','與此同時','Sementara itu, persiapan terus dilakukan.','與此同時，準備工作持續進行。'],
+['analisis','a-na-li-sis','nomina (名詞)','分析','Analisis data menunjukkan tren positif.','資料分析顯示了正面的趨勢。'],
+['hipotesis','hi-po-te-sis','nomina (名詞)','假設','Hipotesis ini perlu diuji lebih lanjut.','這個假設需要進一步驗證。'],
+['metodologi','me-to-do-lo-gi','nomina (名詞)','研究方法論','Metodologi penelitian harus jelas.','研究方法論必須清晰。'],
+['kesimpulan','ke-sim-pul-an','nomina (名詞)','結論','Kesimpulan harus berdasarkan data.','結論必須基於數據。'],
+['argumentasi','ar-gu-men-ta-si','nomina (名詞)','論述、論據','Argumentasi harus logis dan kuat.','論述必須合乎邏輯且有力。'],
+['referensi','re-fe-ren-si','nomina (名詞)','參考資料','Tuliskan referensi dengan lengkap.','請完整寫出參考資料。'],
+['implikasi','im-pli-ka-si','nomina (名詞)','含義、影響','Implikasi penelitian ini sangat luas.','這項研究的影響非常廣泛。'],
+['signifikan','sig-ni-fi-kan','adjektiva (形容詞)','顯著的','Perbedaan yang signifikan ditemukan.','發現了顯著的差異。'],
+['objektif','ob-jek-tif','adjektiva (形容詞)','客觀的','Peneliti harus bersikap objektif.','研究者必須保持客觀。'],
+['subjektif','sub-jek-tif','adjektiva (形容詞)','主觀的','Penilaian ini bersifat subjektif.','這個評估是主觀的。'],
+['kuantitatif','ku-an-ti-ta-tif','adjektiva (形容詞)','量化的','Penelitian kuantitatif menggunakan angka.','量化研究使用數字。'],
+['kualitatif','ku-a-li-ta-tif','adjektiva (形容詞)','質化的','Metode kualitatif lebih mendalam.','質化方法更為深入。'],
+['variabel','va-ri-a-bel','nomina (名詞)','變數','Variabel bebas mempengaruhi variabel terikat.','自變數影響依變數。'],
+['sampel','sam-pel','nomina (名詞)','樣本','Sampel penelitian terdiri dari 200 orang.','研究樣本由200人組成。'],
+['populasi','po-pu-la-si','nomina (名詞)','母群體','Populasi yang diteliti adalah pelajar SMA.','研究的母群體是高中生。'],
+['survei','sur-vei','nomina (名詞)','調查','Survei dilakukan secara online.','調查在線上進行。'],
+['wawancara','wa-wan-ca-ra','nomina (名詞)','訪談、採訪','Wawancara dilakukan dengan 50 responden.','訪談了50名受訪者。'],
+['observasi','ob-ser-va-si','nomina (名詞)','觀察','Observasi lapangan dilakukan selama sebulan.','實地觀察進行了一個月。'],
+['eksperimen','eks-pe-ri-men','nomina (名詞)','實驗','Eksperimen ini membuktikan teori tersebut.','這個實驗證明了那個理論。'],
+['temuan','te-mu-an','nomina (名詞)','發現、研究結果','Temuan penelitian dipublikasikan minggu ini.','研究結果本週公布。'],
+['pendapat','pen-da-pat','nomina (名詞)','意見','Setiap orang berhak menyampaikan pendapat.','每個人都有權表達意見。'],
+['argumen','ar-gu-men','nomina (名詞)','論點','Argumen ini sangat kuat dan meyakinkan.','這個論點非常有力且令人信服。'],
+['bukti','buk-ti','nomina (名詞)','證據','Bukti yang kuat diperlukan dalam debat.','辯論中需要有力的證據。'],
+['setuju','se-tu-ju','verba (動詞)','同意','Saya sepenuhnya setuju dengan pendapat itu.','我完全同意那個意見。'],
+['menolak','me-no-lak','verba (動詞)','拒絕、反對','Dia menolak usulan tersebut.','他拒絕了那個提議。'],
+['mengkritik','meng-kri-tik','verba (動詞)','批評','Pers bebas mengkritik kebijakan pemerintah.','新聞自由批評政府政策。'],
+['mendukung','men-du-kung','verba (動詞)','支持','Kami mendukung kebijakan baru ini.','我們支持這項新政策。'],
+['mempertahankan','mem-per-ta-han-kan','verba (動詞)','捍衛、維護','Dia mempertahankan pendapatnya.','他捍衛了自己的意見。'],
+['membantah','mem-ban-tah','verba (動詞)','反駁','Sulit untuk membantah fakta ini.','很難反駁這個事實。'],
+['menyimpulkan','me-nyim-pul-kan','verba (動詞)','總結、得出結論','Dari data ini kita dapat menyimpulkan...','從這些數據我們可以得出結論……'],
+['menggambarkan','meng-gam-bar-kan','verba (動詞)','描述、描繪','Grafik ini menggambarkan tren pertumbuhan.','這個圖表描繪了成長趨勢。'],
+['menjelaskan','men-je-las-kan','verba (動詞)','解釋','Tolong jelaskan maksud pernyataan itu.','請解釋那個聲明的意思。'],
+['menguraikan','meng-u-ra-i-kan','verba (動詞)','詳細說明','Dia menguraikan rencana dengan jelas.','他清楚地詳細說明了計畫。'],
+['menegaskan','me-ne-gas-kan','verba (動詞)','強調、確認','Dia menegaskan komitmennya.','他強調了自己的承諾。'],
+['membuktikan','mem-buk-ti-kan','verba (動詞)','証明','Penelitian ini membuktikan teori lama.','這項研究證明了舊理論。'],
+['bertentangan','ber-ten-tang-an','adjektiva/verba','相互矛盾的','Dua pendapat ini saling bertentangan.','這兩種意見相互矛盾。'],
+['konsisten','kon-sis-ten','adjektiva (形容詞)','一致的','Pernyataan ini konsisten dengan data.','這個聲明與數據一致。'],
+['kontradiksi','kon-tra-dik-si','nomina (名詞)','矛盾、相抵觸','Ada kontradiksi dalam argumennya.','他的論點中有矛盾。'],
+['relevan','re-le-van','adjektiva (形容詞)','相關的','Contoh ini relevan dengan topik.','這個例子與主題相關。'],
+['perspektif','pers-pek-tif','nomina (名詞)','觀點、角度','Dari perspektif lain, hal ini berbeda.','從另一個角度來看，這件事是不同的。'],
+['menurut','me-nu-rut','preposisi (介詞)','根據、按照','Menurut penelitian terbaru, hasilnya positif.','根據最新研究，結果是正面的。'],
+['berdasarkan','ber-da-sar-kan','preposisi (介詞)','基於、根據','Berdasarkan data, keputusan dibuat.','基於數據，做出了決定。'],
+['terkait','ter-ka-it','adjektiva (形容詞)','相關的、有關的','Masalah ini terkait erat dengan kebijakan.','這個問題與政策密切相關。'],
+['melibatkan','me-li-bat-kan','verba (動詞)','涉及、包含','Proyek ini melibatkan banyak pihak.','這個計畫涉及許多方面。'],
+['menunjukkan','me-nun-juk-kan','verba (動詞)','顯示、指出','Data menunjukkan tren yang positif.','數據顯示了正面的趨勢。'],
+['mencerminkan','men-cer-min-kan','verba (動詞)','反映','Hal ini mencerminkan kondisi nyata.','這件事反映了真實的情況。'],
+['mengakibatkan','meng-a-ki-bat-kan','verba (動詞)','導致','Kekeringan mengakibatkan gagal panen.','乾旱導致農作物歉收。'],
+['memengaruhi','me-me-nga-ru-hi','verba (動詞)','影響','Faktor ini memengaruhi hasil akhir.','這個因素影響了最終結果。'],
+['menghadapi','meng-ha-da-pi','verba (動詞)','面對、應對','Negara ini menghadapi tantangan besar.','這個國家面對著巨大挑戰。'],
+['mengatasi','me-nga-ta-si','verba (動詞)','克服、解決','Kita perlu mengatasi masalah ini.','我們需要解決這個問題。'],
+['terwujud','ter-wu-jud','adjektiva (形容詞)','實現的','Impian itu akhirnya terwujud.','那個夢想終於實現了。'],
+['diharapkan','di-ha-rap-kan','verba (動詞)','被期望、希望','Pemulihan ekonomi diharapkan segera terjadi.','希望經濟復甦盡快發生。'],
+['diperlukan','di-per-lu-kan','verba (動詞)','需要的、必要的','Kerja sama diperlukan untuk sukses.','成功需要合作。'],
+['diwujudkan','di-wu-jud-kan','verba (動詞)','被實現','Rencana ini harus segera diwujudkan.','這個計畫必須盡快實現。'],
+['diupayakan','di-u-pa-ya-kan','verba (動詞)','被努力達成','Perdamaian harus terus diupayakan.','和平必須持續努力追求。'],
+['sebagaimana','se-ba-gai-ma-na','konjungsi (連接詞)','正如、按照','Sebagaimana yang telah dijelaskan sebelumnya.','正如之前所解釋的。'],
+['sesuai','se-su-ai','adjektiva (形容詞)','適合的、符合的','Keputusan ini sesuai dengan aturan.','這個決定符合規定。'],
+['berbanding lurus','ber-ban-ding lu-rus','frasa (片語)','成正比','Usaha berbanding lurus dengan hasil.','努力與結果成正比。'],
+['pada akhirnya','pa-da a-khir-nya','adverbia (副詞)','最終','Pada akhirnya, kebenaran terungkap.','最終，真相浮出水面。'],
+['secara keseluruhan','se-ca-ra ke-se-lu-ruh-an','adverbia (副詞)','整體上、總體而言','Secara keseluruhan, hasilnya memuaskan.','整體而言，結果令人滿意。'],
+['perkenalkan','per-ke-nal-kan','verba (動詞)','介紹（自我）','Perkenalkan, nama saya Budi.','請允許我介紹，我叫布迪。'],
+['menyampaikan','me-nyam-pa-i-kan','verba (動詞)','傳達、表達','Saya ingin menyampaikan pendapat saya.','我想表達我的意見。'],
+['berpendapat','ber-pen-da-pat','verba (動詞)','持有意見','Saya berpendapat bahwa hal ini penting.','我認為這件事很重要。'],
+['mengungkapkan','meng-ung-kap-kan','verba (動詞)','表達、揭示','Dia mengungkapkan perasaannya dengan jujur.','他誠實地表達了自己的感受。'],
+['memohon maaf','me-mo-hon ma-af','frasa (片語)','誠摯道歉','Saya memohon maaf atas kesalahan ini.','我為這個錯誤誠摯道歉。'],
+['mengucapkan terima kasih','me-ngu-cap-kan te-ri-ma ka-sih','frasa (片語)','表達感謝','Saya ingin mengucapkan terima kasih.','我想表達謝意。'],
+['mengusulkan','meng-u-sul-kan','verba (動詞)','建議、提議','Saya mengusulkan solusi berikut ini.','我提議以下解決方案。'],
+['menyarankan','me-nya-ran-kan','verba (動詞)','建議','Dokter menyarankan istirahat yang cukup.','醫生建議充分休息。'],
+['menanyakan','me-na-nya-kan','verba (動詞)','詢問（某事）','Boleh saya menanyakan sesuatu?','我可以詢問一件事嗎？'],
+['mengkonfirmasi','meng-kon-fir-ma-si','verba (動詞)','確認','Tolong konfirmasi kehadiranmu besok.','請確認你明天的出席。'],
+['merespons','me-res-pons','verba (動詞)','回應','Dia merespons dengan cepat dan tepat.','他迅速且準確地回應了。'],
+['mengeluh','me-nge-luh','verba (動詞)','抱怨','Jangan suka mengeluh tanpa solusi.','不要只是抱怨而沒有解決方案。'],
+['memuji','me-mu-ji','verba (動詞)','稱讚','Atasan memuji hasil kerjanya.','上司稱讚了他的工作成果。'],
+['menegosiasikan','me-ne-go-si-a-si-kan','verba (動詞)','協商、談判','Mereka menegosiasikan kontrak baru.','他們協商了新合約。'],
+['berdiskusi','ber-dis-ku-si','verba (動詞)','討論','Mari kita berdiskusi tentang rencana ini.','讓我們討論這個計畫。'],
+['mengemukakan','me-nge-mu-ka-kan','verba (動詞)','提出（想法）','Silakan mengemukakan ide Anda.','請提出您的想法。'],
+['mempersilakan','mem-per-si-la-kan','verba (動詞)','請、邀請（正式）','Kami mempersilakan Anda untuk berbicara.','我們邀請您發言。'],
+['memastikan','me-mas-ti-kan','verba (動詞)','確保','Tolong memastikan semua sudah siap.','請確保一切都準備好了。'],
+['menyetujui','me-nye-tu-jui','verba (動詞)','批准、同意','Proposal ini telah disetujui atasan.','這個提案已獲上司批准。'],
+['berpengaruh','ber-pe-nga-ruh','adjektiva (形容詞)','有影響力的','Tokoh berpengaruh hadir dalam acara itu.','有影響力的人物出席了那個活動。'],
+['berdampak','ber-dam-pak','verba (動詞)','產生影響','Keputusan ini berdampak besar.','這個決定產生了重大影響。'],
+['terbatas','ter-ba-tas','adjektiva (形容詞)','有限的','Sumber daya yang tersedia sangat terbatas.','可用的資源非常有限。'],
+['tersedia','ter-se-di-a','adjektiva (形容詞)','可用的、現有的','Fasilitas yang tersedia cukup lengkap.','現有的設施相當完備。'],
+['terkendala','ter-ken-da-la','adjektiva (形容詞)','受阻的','Proyek terkendala masalah anggaran.','計畫受到預算問題的阻礙。'],
+['mengoptimalkan','meng-op-ti-mal-kan','verba (動詞)','優化','Kita perlu mengoptimalkan sumber daya.','我們需要優化資源。'],
+['memaksimalkan','me-mak-si-mal-kan','verba (動詞)','最大化','Upaya memaksimalkan keuntungan dilakukan.','採取措施最大化利潤。'],
+['meminimalkan','me-mi-ni-mal-kan','verba (動詞)','最小化','Kita harus meminimalkan risiko.','我們必須最小化風險。'],
+['mengintegrasikan','meng-in-teg-ra-si-kan','verba (動詞)','整合','Sistem ini mengintegrasikan berbagai data.','這個系統整合了各種數據。'],
+['mengimplementasikan','meng-im-ple-men-ta-si-kan','verba (動詞)','實施','Kebijakan ini mulai diimplementasikan.','這項政策開始實施。'],
+['sinonim','si-no-nim','nomina (名詞)','同義詞','"Besar" adalah sinonim dari "raksasa".','「大」是「巨大」的同義詞。'],
+['antonim','an-to-nim','nomina (名詞)','反義詞','Antonim dari "panas" adalah "dingin".','「熱」的反義詞是「冷」。'],
+['makna','mak-na','nomina (名詞)','含義、意義','Makna kata ini bergantung konteksnya.','這個詞的含義取決於語境。'],
+['konteks','kon-teks','nomina (名詞)','語境、背景','Pahami kata dalam konteks kalimat.','在句子語境中理解詞語。'],
+['konotasi','ko-no-ta-si','nomina (名詞)','隱含意義','Kata ini memiliki konotasi negatif.','這個詞有負面的隱含意義。'],
+['denotasi','de-no-ta-si','nomina (名詞)','字面意義','Denotasi kata harus dipahami dulu.','必須先理解詞語的字面意義。'],
+['idiom','i-di-om','nomina (名詞)','慣用語','Idiom ini berarti bekerja keras.','這個慣用語意思是努力工作。'],
+['peribahasa','pe-ri-ba-ha-sa','nomina (名詞)','諺語、格言','Peribahasa mengandung nilai kehidupan.','諺語包含生活的價值觀。'],
+['paragraf','pa-ra-graf','nomina (名詞)','段落','Setiap paragraf memiliki ide pokok.','每個段落都有主要思想。'],
+['gagasan pokok','ga-gas-an po-kok','nomina (名詞)','主要思想','Tentukan gagasan pokok paragraf ini.','確定這個段落的主要思想。'],
+['meningkat','me-ning-kat','verba (動詞)','增加、上升','Harga terus meningkat setiap bulan.','價格每個月持續上漲。'],
+['menurun','me-nu-run','verba (動詞)','下降、減少','Angka kejahatan berhasil diturunkan.','犯罪率成功降低了。'],
+['meluas','me-lu-as','verba (動詞)','擴大、蔓延','Kebakaran hutan meluas dengan cepat.','森林大火迅速蔓延。'],
+['menyempit','me-nyem-pit','verba (動詞)','縮小、變窄','Lahan pertanian terus menyempit.','農業用地持續縮小。'],
+['menguat','meng-u-at','verba (動詞)','增強、走強','Nilai tukar rupiah menguat minggu ini.','印尼盾本週升值了。'],
+['melemah','me-le-mah','verba (動詞)','減弱、走弱','Ekonomi global melemah akibat pandemi.','全球經濟因疫情而走弱。'],
+['memburuk','mem-bu-ruk','verba (動詞)','惡化','Kondisi pasien mulai memburuk.','患者的狀況開始惡化。'],
+['membaik','mem-ba-ik','verba (動詞)','好轉、改善','Cuaca diperkirakan akan membaik.','天氣預計將會好轉。'],
+['bertambah','ber-tam-bah','verba (動詞)','增加','Jumlah penduduk terus bertambah.','人口數量持續增加。'],
+['berkurang','ber-ku-rang','verba (動詞)','減少','Cadangan minyak terus berkurang.','石油儲量持續減少。'],
+['berubah','be-ru-bah','verba (動詞)','改變','Situasi politik berubah dengan cepat.','政治局勢迅速改變。'],
+['bertahan','ber-ta-han','verba (動詞)','堅持、維持','Dia bertahan dalam situasi sulit.','他在困難情況下堅持了下來。'],
+['berjuang','ber-ju-ang','verba (動詞)','奮鬥、抗爭','Mereka berjuang untuk hak mereka.','他們為自己的權利而奮鬥。'],
+['mencapai','men-ca-pai','verba (動詞)','達到、實現','Dia berhasil mencapai target.','他成功地達到了目標。'],
+['meraih','me-ra-ih','verba (動詞)','獲得、取得','Dia meraih juara pertama.','他獲得了第一名。'],
+['mewujudkan','me-wu-jud-kan','verba (動詞)','實現、落實','Impian itu akhirnya bisa diwujudkan.','那個夢想終於得以實現。'],
+['memperkuat','mem-per-ku-at','verba (動詞)','加強、鞏固','Kebijakan ini memperkuat ekonomi.','這項政策加強了經濟。'],
+['memperlemah','mem-per-le-mah','verba (動詞)','削弱','Konflik memperlemah posisi negara.','衝突削弱了國家的地位。'],
+['mempercepat','mem-per-ce-pat','verba (動詞)','加速','Teknologi mempercepat proses produksi.','科技加速了生產過程。'],
+['memperlambat','mem-per-lam-bat','verba (動詞)','減慢','Banjir memperlambat distribusi barang.','洪水減慢了商品配送。'],
+['pembangunan','pem-ba-ngun-an','nomina (名詞)','建設、發展','Pembangunan infrastruktur terus dilakukan.','基礎設施建設持續進行。'],
+['pengembangan','peng-em-bang-an','nomina (名詞)','開發、發展','Pengembangan SDM sangat penting.','人力資源開發非常重要。'],
+['peningkatan','pe-ning-kat-an','nomina (名詞)','提升、增進','Peningkatan mutu pendidikan diprioritaskan.','提升教育品質被列為優先事項。'],
+['penurunan','pe-nu-run-an','nomina (名詞)','下降、降低','Penurunan angka kemiskinan terjadi.','貧困率出現了下降。'],
+['perbaikan','per-ba-ik-an','nomina (名詞)','改善、修繕','Perbaikan sistem dilakukan secara menyeluruh.','系統改善全面進行。'],
+['keberhasilan','ke-ber-ha-sil-an','nomina (名詞)','成功','Keberhasilan ini adalah hasil kerja keras.','這個成功是努力工作的結果。'],
+['kegagalan','ke-ga-gal-an','nomina (名詞)','失敗','Kegagalan adalah pelajaran berharga.','失敗是寶貴的教訓。'],
+['tantangan','tan-tang-an','nomina (名詞)','挑戰','Setiap tantangan membuat kita lebih kuat.','每一個挑戰都讓我們更強大。'],
+['peluang','pe-lu-ang','nomina (名詞)','機會（商業）','Peluang usaha terbuka lebar.','商業機會大開。'],
+['hambatan','ham-ba-tan','nomina (名詞)','障礙、阻礙','Hambatan harus diatasi bersama.','障礙必須共同克服。'],
+['solusi','so-lu-si','nomina (名詞)','解決方案','Kita perlu menemukan solusi terbaik.','我們需要找到最好的解決方案。'],
+['strategi','stra-te-gi','nomina (名詞)','策略','Strategi yang tepat sangat diperlukan.','正確的策略非常必要。'],
+['prioritas','pri-o-ri-tas','nomina (名詞)','優先事項','Tentukan prioritas dengan bijaksana.','明智地確定優先事項。'],
+['komitmen','ko-mit-men','nomina (名詞)','承諾、投入','Komitmen penuh diperlukan untuk sukses.','完全的投入是成功所必需的。'],
+['konsekuensi','kon-se-ku-en-si','nomina (名詞)','後果','Setiap tindakan ada konsekuensinya.','每一個行動都有後果。'],
+['dampak positif','dam-pak po-si-tif','nomina (名詞)','正面影響','Program ini membawa dampak positif.','這個計畫帶來了正面影響。'],
+['dampak negatif','dam-pak ne-ga-tif','nomina (名詞)','負面影響','Perlu diminimalkan dampak negatifnya.','需要最小化其負面影響。'],
+['upaya','u-pa-ya','nomina (名詞)','努力、措施','Upaya terus dilakukan tanpa henti.','努力持續不斷地進行。'],
+['target','tar-get','nomina (名詞)','目標（數量）','Target produksi telah tercapai.','生產目標已達成。'],
+['evaluasi','e-va-lu-a-si','nomina (名詞)','評估','Evaluasi berkala perlu dilakukan.','需要定期進行評估。'],
+];
+
+// ── BUILD SCHEDULE ──
+function buildSchedule() {
+  const schedule = {};
+  let idx = 0;
+  for (let w = 1; w <= 15; w++) {
+    schedule[w] = {};
+    for (let d = 1; d <= 7; d++) {
+      schedule[w][d] = [];
+      for (let i = 0; i < 20; i++) {
+        const raw = WORD_BANK[idx % WORD_BANK.length];
+        idx++;
+        schedule[w][d].push({
+          id: `w${w}d${d}i${i}`,
+          word: raw[0], pron: raw[1], pos: raw[2], zh: raw[3],
+          ex: raw[4], exZh: raw[5]
+        });
+      }
+    }
+  }
+  return schedule;
+}
+const SCHEDULE = buildSchedule();
+
+// ══════════════════════════════════════════════════════
+// ── LOCAL STORAGE — 進度儲存系統 ──
+//
+// 新增 key:
+//   ukbi_position  → { week, day, cardIdx }   閃卡位置（接續進度）
+//   ukbi_mode      → 'flash' | 'list' | 'quiz' 上次模式
+//
+// 原有 keys 不變:
+//   ukbi_srs, ukbi_mastered, ukbi_todayNew, ukbi_lastDate,
+//   ukbi_streak, ukbi_history, ukbi_quizStats, ukbi_reminder
+// ══════════════════════════════════════════════════════
+
+function loadPosition() {
+  try { return JSON.parse(localStorage.getItem('ukbi_position') || 'null'); }
+  catch(e) { return null; }
+}
+function savePosition() {
+  localStorage.setItem('ukbi_position', JSON.stringify({
+    week: S.week, day: S.day, cardIdx: S.cardIdx
+  }));
+}
+function loadMode() {
+  return localStorage.getItem('ukbi_mode') || 'flash';
+}
+function saveMode(m) {
+  localStorage.setItem('ukbi_mode', m);
+}
+
+// Toast 通知已移至 showSaveToastMsg（統一處理）
+let _toastTimer = null;
+
+// ── STATE ──
+const today = new Date().toDateString();
+
+// 先讀取儲存的位置
+const _savedPos = loadPosition();
+
+let S = {
+  week:     _savedPos ? _savedPos.week    : 1,
+  day:      _savedPos ? _savedPos.day     : 1,
+  cardIdx:  _savedPos ? _savedPos.cardIdx : 0,
+  mode: loadMode(),
+  isFlipped: false,
+  queue: [],
+  srs:      JSON.parse(localStorage.getItem('ukbi_srs')      || '{}'),
+  mastered: JSON.parse(localStorage.getItem('ukbi_mastered') || '{}'),
+  todayNew: parseInt(localStorage.getItem('ukbi_todayNew')   || '0'),
+  lastDate: localStorage.getItem('ukbi_lastDate') || '',
+  streak:   parseInt(localStorage.getItem('ukbi_streak')     || '1'),
+  quizAnswered: false, quizWords: [], quizPending: [],
+  quizType: 'meaning',
+  quizScore: { total: 0, correct: 0 },
+  _fillAnswer: '',
+  _fillWord: null,
+};
+
+// 每日重置
+if (S.lastDate !== today) {
+  S.todayNew = 0;
+  if (S.lastDate) {
+    const diff = Math.round((new Date(today) - new Date(S.lastDate)) / 86400000);
+    S.streak = diff === 1 ? S.streak + 1 : 1;
+  }
+  S.lastDate = today;
+  localStorage.setItem('ukbi_lastDate', today);
+  localStorage.setItem('ukbi_streak', S.streak);
+  localStorage.setItem('ukbi_todayNew', '0');
+}
+
+// ── SPEECH ──
+function doSpeak(text, btnEl) {
+  if (!text) return;
+  window.speechSynthesis.cancel();
+  setTimeout(() => {
+    const utt = new SpeechSynthesisUtterance(text);
+    utt.lang = 'id-ID'; utt.rate = 0.82; utt.pitch = 1.0;
+    const voices = window.speechSynthesis.getVoices();
+    const idVoice = voices.find(v => v.lang && v.lang.startsWith('id'));
+    if (idVoice) utt.voice = idVoice;
+    if (btnEl) btnEl.classList.add('speaking');
+    utt.onend  = () => { if (btnEl) btnEl.classList.remove('speaking'); };
+    utt.onerror = () => { if (btnEl) btnEl.classList.remove('speaking'); };
+    window.speechSynthesis.speak(utt);
+  }, 80);
+}
+function speakCurrentWord()    { const w = S.queue[S.cardIdx % S.queue.length]; if (w) doSpeak(w.word, document.getElementById('speakFront')); }
+function speakCurrentExample() { const w = S.queue[S.cardIdx % S.queue.length]; if (w) doSpeak(w.ex,   document.getElementById('speakExample')); }
+function speakItem(word, btnEl){ document.querySelectorAll('.witem-speak').forEach(b => b.classList.remove('speaking')); doSpeak(word, btnEl); }
+function speakQuizWord() { const w = S.quizPending[0] || S.quizWords[0]; if (w) doSpeak(w.word, document.getElementById('qSpeakBtn')); }
+
+if (typeof window !== 'undefined' && window.speechSynthesis) {
+  window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+  window.speechSynthesis.getVoices();
+}
+
+// ── HELPERS ──
+function currentWords() { return SCHEDULE[S.week][S.day]; }
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length-1; i > 0; i--) {
+    const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+function save() {
+  localStorage.setItem('ukbi_srs',       JSON.stringify(S.srs));
+  localStorage.setItem('ukbi_mastered',  JSON.stringify(S.mastered));
+  localStorage.setItem('ukbi_todayNew',  S.todayNew);
+  localStorage.setItem('ukbi_streak',    S.streak);
+  savePosition();
+  showSaveToastMsg('💾 進度已儲存');
+}
+
+// ── HISTORY ──
+function loadHistory() { try { return JSON.parse(localStorage.getItem('ukbi_history') || '{}'); } catch(e) { return {}; } }
+function saveHistory(h) { localStorage.setItem('ukbi_history', JSON.stringify(h)); }
+function recordDailyActivity(n) {
+  const h = loadHistory();
+  const k = new Date().toDateString();
+  if (!h[k]) h[k] = { new: 0, quiz: 0, correct: 0 };
+  h[k].new += n; saveHistory(h);
+}
+function recordQuizAnswer(correct) {
+  let qs = JSON.parse(localStorage.getItem('ukbi_quizStats') || '{"total":0,"correct":0}');
+  qs.total++; if (correct) qs.correct++;
+  localStorage.setItem('ukbi_quizStats', JSON.stringify(qs));
+  const h = loadHistory(); const k = new Date().toDateString();
+  if (!h[k]) h[k] = { new:0, quiz:0, correct:0 };
+  h[k].quiz++; if (correct) h[k].correct++; saveHistory(h);
+}
+
+// ── DASHBOARD ──
+function toggleDash() {
+  const dash = document.getElementById('dashboard');
+  const btn  = document.getElementById('dashToggle');
+  const open = dash.classList.toggle('visible');
+  btn.classList.toggle('open', open);
+  if (open) renderDashboard();
+}
+function renderDashboard() {
+  const h = loadHistory();
+  const mastered = Object.keys(S.mastered).length;
+  const daysArr  = Object.keys(h).sort();
+  const totalDays = daysArr.length;
+  const weekAgo = Date.now() - 7 * 86400000;
+  let weekWords = 0;
+  daysArr.forEach(d => { if (new Date(d).getTime() >= weekAgo) weekWords += (h[d].new || 0); });
+  let qs = JSON.parse(localStorage.getItem('ukbi_quizStats') || '{"total":0,"correct":0}');
+  const accuracy = qs.total > 0 ? Math.round(qs.correct / qs.total * 100) + '%' : '—';
+  const progress = Math.round(mastered / 2100 * 100) + '%';
+  document.getElementById('dStreak').textContent    = S.streak;
+  document.getElementById('dMastered').textContent  = mastered;
+  document.getElementById('dDaysTotal').textContent = totalDays;
+  document.getElementById('dWeekWords').textContent = weekWords;
+  document.getElementById('dAccuracy').textContent  = accuracy;
+  document.getElementById('dProgress').textContent  = progress;
+  renderHeatmap(h); renderWeeklyBars(h); renderReminderState();
+}
+function renderHeatmap(h) {
+  const el = document.getElementById('heatmap'); el.innerHTML = '';
+  const todayStr = new Date().toDateString();
+  for (let i = 59; i >= 0; i--) {
+    const d = new Date(Date.now() - i * 86400000);
+    const k = d.toDateString(); const data = h[k] || { new: 0 };
+    const div = document.createElement('div');
+    div.className = 'hm-day' + (data.new >= 20 ? ' full' : data.new > 0 ? ' part' : '') + (k === todayStr ? ' tod' : '');
+    div.textContent = d.getDate();
+    div.title = k + '：' + (data.new || 0) + ' 個單字';
+    el.appendChild(div);
+  }
+}
+function renderWeeklyBars(h) {
+  const el = document.getElementById('wbars'); el.innerHTML = '';
+  const DAYS = ['日','一','二','三','四','五','六'];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(Date.now() - i * 86400000);
+    const k = d.toDateString(); const words = (h[k] || {}).new || 0;
+    const pct = Math.min(words / 20, 1);
+    const wrap = document.createElement('div'); wrap.className = 'wbar-w';
+    wrap.innerHTML = '<div class="wbar-track"><div class="wbar-fill" style="height:' + Math.round(pct * 100) + '%"></div></div><div class="wbar-lbl">' + DAYS[d.getDay()] + '</div>';
+    el.appendChild(wrap);
+  }
+}
+
+// ── REMINDER ──
+function loadReminderSettings() { try { return JSON.parse(localStorage.getItem('ukbi_reminder') || '{"enabled":false,"time":"09:10"}'); } catch(e) { return { enabled: false, time: '09:10' }; } }
+function saveReminderSettings(r) { localStorage.setItem('ukbi_reminder', JSON.stringify(r)); }
+function renderReminderState() {
+  const r = loadReminderSettings();
+  const tog = document.getElementById('remToggle');
+  const inp = document.getElementById('remTime');
+  const sub = document.getElementById('remStatus');
+  if (tog) tog.checked = r.enabled;
+  if (inp) inp.value   = r.time || '09:10';
+  if (sub) sub.textContent = r.enabled ? '已設定：每天 ' + r.time + ' 提醒' : '尚未開啟提醒';
+}
+function toggleReminder(enabled) {
+  if (enabled) {
+    if (Notification.permission === 'default') {
+      Notification.requestPermission().then(p => {
+        if (p === 'granted') { const r = loadReminderSettings(); r.enabled = true; saveReminderSettings(r); scheduleReminder(r.time); renderReminderState(); }
+        else { document.getElementById('remToggle').checked = false; showNotifBanner('warn'); }
+      });
+    } else if (Notification.permission === 'granted') {
+      const r = loadReminderSettings(); r.enabled = true; saveReminderSettings(r); scheduleReminder(r.time); renderReminderState();
+    } else { document.getElementById('remToggle').checked = false; showNotifBanner('warn'); }
+  } else {
+    const r = loadReminderSettings(); r.enabled = false; saveReminderSettings(r); clearReminderTimer(); renderReminderState();
+  }
+}
+function updateReminderTime(time) {
+  const r = loadReminderSettings(); r.time = time; saveReminderSettings(r);
+  if (r.enabled) scheduleReminder(time);
+  const sub = document.getElementById('remStatus');
+  if (sub) sub.textContent = r.enabled ? '已設定：每天 ' + time + ' 提醒' : '尚未開啟提醒';
+  const notifSub = document.getElementById('notifSub');
+  if (notifSub) notifSub.textContent = '每天 ' + time + ' 提醒您學習印尼語';
+}
+let _reminderTimer = null;
+function clearReminderTimer() { if (_reminderTimer) { clearTimeout(_reminderTimer); _reminderTimer = null; } }
+function scheduleReminder(timeStr) {
+  clearReminderTimer();
+  if (Notification.permission !== 'granted') return;
+  const parts = (timeStr || '09:10').split(':').map(Number);
+  const hh = parts[0], mm = parts[1];
+  const now = new Date();
+  const fire = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hh, mm, 0);
+  if (fire <= now) fire.setDate(fire.getDate() + 1);
+  _reminderTimer = setTimeout(() => { fireReminder(); scheduleReminder(timeStr); }, fire - now);
+}
+function fireReminder() {
+  if (Notification.permission !== 'granted') return;
+  const mastered = Object.keys(S.mastered).length;
+  new Notification('🇮🇩 印尼語學習提醒', {
+    body: '是時候學習了！今日進度：' + S.todayNew + '/20 個單字。已掌握 ' + mastered + ' 個單字，繼續加油！',
+    tag: 'ukbi-daily', requireInteraction: false,
+  });
+}
+function sendTestNotif() {
+  if (Notification.permission === 'granted') { fireReminder(); }
+  else if (Notification.permission === 'default') {
+    Notification.requestPermission().then(p => { if (p === 'granted') { fireReminder(); renderReminderState(); renderDashboard(); } else showNotifBanner('warn'); });
+  } else { showNotifBanner('warn'); }
+}
+function handleNotifBtn() {
+  const r = loadReminderSettings();
+  if (Notification.permission === 'granted' && r.enabled) {
+    document.getElementById('dashboard').classList.add('visible');
+    document.getElementById('dashToggle').classList.add('open');
+    renderDashboard();
+    document.getElementById('notifBanner').style.display = 'none';
+  } else { if (typeof Notification !== 'undefined') toggleReminder(true); document.getElementById('notifBanner').style.display = 'none'; }
+}
+function showNotifBanner(type) {
+  const b = document.getElementById('notifBanner');
+  const t = document.getElementById('notifTitle');
+  const sub = document.getElementById('notifSub');
+  const btn = document.getElementById('notifBtn');
+  const r = loadReminderSettings();
+  b.style.display = 'flex';
+  if (type === 'warn') {
+    b.classList.add('warn');
+    t.textContent = '無法取得通知權限';
+    sub.textContent = '請在瀏覽器設定中手動允許通知，然後再試一次';
+    btn.className = 'notif-btn warn-btn'; btn.textContent = '了解';
+    btn.onclick = () => { b.style.display = 'none'; };
+  } else {
+    b.classList.remove('warn');
+    t.textContent = '開啟每日學習提醒';
+    sub.textContent = '每天 ' + (r.time || '09:10') + ' 提醒您學習印尼語';
+    btn.className = 'notif-btn'; btn.textContent = '開啟提醒';
+    btn.onclick = handleNotifBtn;
+  }
+}
+function initNotifications() {
+  const r = loadReminderSettings();
+  if (typeof Notification === 'undefined') return;
+  if (r.enabled && Notification.permission === 'granted') { scheduleReminder(r.time); }
+  else if (!r.enabled && Notification.permission !== 'denied') { setTimeout(() => showNotifBanner('invite'), 1500); }
+}
+
+// ══════════════════════════════════════════════════════
+// ── INIT ──
+// ══════════════════════════════════════════════════════
+function init() {
+  buildWeekTabs();
+  buildDayTabs();
+  updateUI();
+
+  // 重建本週本日的 queue（從儲存的 cardIdx 接續）
+  S.queue = shuffle(currentWords());
+  // 若 cardIdx 超過 queue 長度，從頭開始
+  if (S.cardIdx >= S.queue.length) S.cardIdx = 0;
+
+  updateDaySummary();
+  updateProgress();
+
+  // 恢復上次模式
+  setModeInternal(S.mode);
+
+  initNotifications();
+
+  // 顯示接續進度提示（若非第1週第1天）
+  if (S.week > 1 || S.day > 1 || S.cardIdx > 0) {
+    const toast = document.getElementById('saveToast');
+    toast.textContent = `📍 已接續：第${S.week}週 Day${S.day}，第 ${S.cardIdx + 1} 張卡`;
+    toast.classList.add('show');
+    setTimeout(() => {
+      toast.classList.remove('show');
+      setTimeout(() => { toast.textContent = '💾 進度已儲存'; }, 400);
+    }, 3000);
+  }
+}
+
+function buildWeekTabs() {
+  const c = document.getElementById('weekTabs'); c.innerHTML = '';
+  WEEKS_META.forEach(wm => {
+    const b = document.createElement('button');
+    b.className = 'wtab' + (wm.week === S.week ? ' active' : '');
+    b.textContent = `第${['一','二','三','四','五','六','七','八','九','十','十一','十二','十三','十四','十五'][wm.week-1]}週`;
+    b.title = wm.title;
+    b.onclick = () => { S.week = wm.week; S.day = 1; buildWeekTabs(); buildDayTabs(); loadDay(wm.week, 1); };
+    c.appendChild(b);
+  });
+}
+function buildDayTabs() {
+  const c = document.getElementById('dayTabs'); c.innerHTML = '';
+  const wm = WEEKS_META[S.week - 1];
+  wm.days.forEach((title, i) => {
+    const d = i + 1;
+    const b = document.createElement('button');
+    b.className = 'dtab' + (d === S.day ? ' active' : '');
+    b.textContent = `Day ${d}`; b.title = title;
+    b.onclick = () => loadDay(S.week, d);
+    c.appendChild(b);
+  });
+}
+
+function loadDay(w, d) {
+  S.week = w; S.day = d;
+  S.cardIdx = 0; S.isFlipped = false;
+  S.queue = shuffle(currentWords());
+  document.querySelectorAll('.dtab').forEach((b, i) => { b.className = 'dtab' + (i + 1 === d ? ' active' : ''); });
+  document.querySelectorAll('.wtab').forEach((b, i) => { b.className = 'wtab' + (i + 1 === w ? ' active' : ''); });
+  updateDaySummary(); updateProgress(); updateUI();
+  savePosition(); // 儲存新位置
+  if (S.mode === 'flash') showCard();
+  else if (S.mode === 'list') renderList();
+  else startQuiz();
+}
+
+function updateDaySummary() {
+  const wm = WEEKS_META[S.week - 1];
+  const dayTitle = wm.days[S.day - 1];
+  document.getElementById('dayTitle').textContent = `第${S.week}週 Day${S.day}｜${dayTitle}`;
+  document.getElementById('dayMeta').textContent = `今日學習：20個新單字・第${S.week}週`;
+  const badges = document.getElementById('dayBadges');
+  badges.innerHTML = `
+    <span class="badge badge-new">📚 20個新字</span>
+    <span class="badge badge-topic">${wm.title}</span>
+    <span class="badge badge-rev">🔁 SRS複習</span>
+  `;
+}
+function updateUI() {
+  document.getElementById('streakVal').textContent = S.streak;
+  document.getElementById('todayVal').textContent  = `${Math.min(S.todayNew,20)}/20`;
+  document.getElementById('hToday').textContent    = S.todayNew;
+  document.getElementById('hMastered').textContent = Object.keys(S.mastered).length;
+}
+function updateProgress() {
+  const done = Math.min(S.cardIdx, 20);
+  const pct = Math.round((done / 20) * 100);
+  document.getElementById('progFill').style.width  = pct + '%';
+  document.getElementById('progPct').textContent   = pct + '%';
+  document.getElementById('progLabel').textContent = `第${S.week}週 Day${S.day} · ${done}/20 完成`;
+}
+
+// ── FLASH ──
+function showCard() {
+  const words = S.queue;
+  if (!words.length) return;
+  const w = words[S.cardIdx % words.length];
+  S.isFlipped = false;
+  const fc = document.getElementById('flashcard');
+  fc.classList.remove('is-flipped');
+  document.getElementById('ratingWrap').style.display = 'none';
+  document.getElementById('fPos').textContent  = w.pos;
+  document.getElementById('fWord').textContent = w.word;
+  document.getElementById('fPron').textContent = `/${w.pron}/`;
+  document.getElementById('bMeaning').textContent = w.zh;
+  renderExampleSentence(w);
+  document.getElementById('bExZh').textContent = `📖 ${w.exZh}`;
+  const srs = S.srs[w.id] || { interval: 1, ef: 2.5, reps: 0 };
+  document.getElementById('iv1').textContent = '+1天';
+  document.getElementById('iv2').textContent = `+${Math.max(3, srs.interval)}天`;
+  document.getElementById('iv3').textContent = `+${Math.max(7, Math.round(srs.interval * srs.ef))}天`;
+  document.getElementById('speakFront').classList.remove('speaking');
+  document.getElementById('speakExample').classList.remove('speaking');
+}
+
+// 渲染例句（可重複呼叫，用於重置）
+function renderExampleSentence(w) {
+  const exEl = document.getElementById('bEx');
+  exEl.innerHTML = '';
+  const escaped = w.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const parts = w.ex.split(new RegExp(`(${escaped})`, 'i'));
+  parts.forEach(p => {
+    if (p.toLowerCase() === w.word.toLowerCase()) {
+      const s = document.createElement('strong'); s.textContent = p; exEl.appendChild(s);
+    } else {
+      exEl.appendChild(document.createTextNode(p));
+    }
+  });
+}
+
+
+function flipCard() {
+  window.speechSynthesis.cancel();
+  S.isFlipped = !S.isFlipped;
+  const fc = document.getElementById('flashcard');
+  fc.classList.add('flip-out');
+  setTimeout(() => {
+    fc.classList.toggle('is-flipped', S.isFlipped);
+    document.getElementById('ratingWrap').style.display = S.isFlipped ? 'flex' : 'none';
+    fc.classList.remove('flip-out');
+    fc.classList.add('flip-in');
+    setTimeout(() => fc.classList.remove('flip-in'), 180);
+  }, 180);
+}
+
+function rate(r) {
+  const words = S.queue;
+  const w = words[S.cardIdx % words.length];
+  const srs = S.srs[w.id] || { interval: 1, ef: 2.5, reps: 0 };
+  if (r === 0) { srs.interval = 1; srs.reps = 0; S.queue.push(w); }
+  else if (r === 1) { srs.interval = 1; srs.reps++; }
+  else if (r === 2) { srs.interval = srs.reps === 0 ? 3 : Math.round(srs.interval * srs.ef); srs.ef = Math.max(1.3, srs.ef - 0.1); srs.reps++; }
+  else { srs.interval = srs.reps === 0 ? 7 : Math.round(srs.interval * srs.ef * 1.3); srs.ef = Math.min(3.0, srs.ef + 0.1); srs.reps++; S.mastered[w.id] = true; }
+  S.srs[w.id] = srs;
+  S.todayNew = Math.min(S.todayNew + 1, 99);
+  recordDailyActivity(1);
+  S.cardIdx++;
+  save(); updateProgress(); updateUI();
+  if (S.cardIdx >= words.length) { showComplete(); return; }
+  showCard();
+}
+
+function nextDayCoords() {
+  if (S.day < 7) return { week: S.week, day: S.day + 1 };
+  if (S.week < 15) return { week: S.week + 1, day: 1 };
+  return null;
+}
+function showComplete() {
+  document.getElementById('flashcard').style.visibility = 'hidden';
+  document.getElementById('ratingWrap').style.display = 'none';
+  const old = document.getElementById('completeOverlay');
+  if (old) old.remove();
+  const next = nextDayCoords();
+  const nextLabel = next ? `第${next.week}週 Day${next.day}` : null;
+  const overlay = document.createElement('div');
+  overlay.className = 'complete-overlay'; overlay.id = 'completeOverlay';
+  overlay.innerHTML = `
+    <div class="co-emoji">🎉</div>
+    <div class="co-title">第${S.week}週 Day${S.day} 完成！</div>
+    <div class="co-sub">已複習今日全部 20 個單字 🏆<br>想繼續超前進度嗎？</div>
+    ${nextLabel
+      ? `<button class="continue-btn" onclick="goNextDay()">繼續學習 ${nextLabel} →</button>`
+      : `<div style="font-size:13px;color:var(--green)">🎓 恭喜完成全部 2100 個單字！</div>`
+    }`;
+  document.getElementById('cardScene').appendChild(overlay);
+}
+function goNextDay() {
+  const next = nextDayCoords();
+  if (!next) return;
+  const overlay = document.getElementById('completeOverlay');
+  if (overlay) overlay.remove();
+  document.getElementById('flashcard').style.visibility = '';
+  S.week = next.week; S.day = next.day;
+  buildWeekTabs(); buildDayTabs();
+  loadDay(next.week, next.day);
+}
+
+// ── LIST ──
+function renderList() {
+  const grid = document.getElementById('wordList'); grid.innerHTML = '';
+  currentWords().forEach(w => {
+    const div = document.createElement('div');
+    div.className = 'witem' + (S.mastered[w.id] ? ' mastered' : '');
+    div.innerHTML = `
+      <div class="witem-left">
+        <div class="witem-pos">${w.pos}</div>
+        <div class="witem-word">${w.word}</div>
+        <div class="witem-zh">${w.zh}</div>
+      </div>
+      <button class="witem-speak" title="聆聽發音" onclick="event.stopPropagation();speakItem('${w.word}', this)">🔊</button>
+    `;
+    grid.appendChild(div);
+  });
+}
+
+// ── QUIZ ──
+function setQuizType(type) {
+  S.quizType = type;
+  ['meaning','fill','id'].forEach(t => {
+    const btn  = document.getElementById('qt' + t.charAt(0).toUpperCase() + t.slice(1));
+    const pane = document.getElementById('q'  + t.charAt(0).toUpperCase() + t.slice(1) + 'Pane');
+    if (btn)  btn.classList.toggle('active', t === type);
+    if (pane) pane.classList.toggle('hidden', t !== type);
+  });
+  S.quizScore = { total: 0, correct: 0 }; S.quizAnswered = false;
+  document.getElementById('qFeedback').classList.add('hidden');
+  document.getElementById('qNext').classList.add('hidden');
+  startQuiz();
+}
+function updateScoreDisp() {
+  const el = document.getElementById('qScoreDisp');
+  if (el) el.textContent = S.quizScore.correct + ' / ' + S.quizScore.total;
+}
+function startQuiz() {
+  S.quizWords   = shuffle(currentWords());
+  S.quizPending = [...S.quizWords]; // 答對 → 移除；答錯 → 留在佇列尾端重出
+  S.quizScore   = { total: 0, correct: 0 };
+  updateScoreDisp(); showQuizQ();
+}
+function showMeaningQ(w) {
+  document.getElementById('qWord').textContent = w.word;
+  document.getElementById('qSpeakBtn').onclick = () => doSpeak(w.word, document.getElementById('qSpeakBtn'));
+  const others = shuffle(currentWords().filter(x => x.id !== w.id)).slice(0, 3);
+  const opts = shuffle([w, ...others]);
+  const cont = document.getElementById('qOpts'); cont.innerHTML = '';
+  opts.forEach(opt => {
+    const b = document.createElement('button'); b.className = 'qopt'; b.textContent = opt.zh;
+    b.onclick = () => answerMCQ(opt.id === w.id, b, w.zh, 'qOpts'); cont.appendChild(b);
+  });
+}
+function showFillQ(w) {
+  const sentEl = document.getElementById('qFillSentence'); sentEl.innerHTML = '';
+  const escapedWord = w.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const parts = w.ex.split(new RegExp('(' + escapedWord + ')', 'i'));
+  let foundBlank = false;
+  parts.forEach(p => {
+    if (!foundBlank && p.toLowerCase() === w.word.toLowerCase()) {
+      foundBlank = true;
+      const inp = document.createElement('input'); inp.type = 'text'; inp.className = 'blank-input'; inp.id = 'blankInp';
+      inp.placeholder = '___'; inp.autocomplete = 'off'; inp.spellcheck = false;
+      inp.style.width = Math.max(100, w.word.length * 13) + 'px';
+      inp.addEventListener('keydown', e => { if (e.key === 'Enter') submitFill(); });
+      sentEl.appendChild(inp);
+    } else { sentEl.appendChild(document.createTextNode(p)); }
+  });
+  const zhDiv = document.createElement('div');
+  zhDiv.style.cssText = 'font-size:12px;color:var(--muted);margin-top:12px;font-style:italic;';
+  zhDiv.textContent = '📖 ' + w.exZh; sentEl.appendChild(zhDiv);
+  const submitBtn = document.getElementById('qFillSubmit');
+  submitBtn.disabled = false; submitBtn.textContent = '確認答案';
+  S._fillAnswer = w.word; S._fillWord = w;
+  setTimeout(() => { const inp = document.getElementById('blankInp'); if (inp) inp.focus(); }, 100);
+}
+function submitFill() {
+  const inp = document.getElementById('blankInp');
+  if (!inp || S.quizAnswered) return;
+  const userAns = inp.value.trim(); if (!userAns) { inp.focus(); return; }
+  const correct = userAns.toLowerCase() === S._fillAnswer.toLowerCase();
+  S.quizAnswered = true; inp.classList.add(correct ? 'correct' : 'wrong'); inp.disabled = true;
+  document.getElementById('qFillSubmit').disabled = true;
+  if (!correct) {
+    const hint = document.createElement('div');
+    hint.style.cssText = 'font-size:13px;color:var(--red);margin-top:10px;text-align:center;font-weight:600;';
+    hint.textContent = '正確答案：' + S._fillAnswer;
+    document.getElementById('qFillSentence').appendChild(hint);
+  }
+  finishQuizAnswer(correct, S._fillWord);
+}
+function showIdQ(w) {
+  document.getElementById('qIdWord').textContent = w.zh;
+  const others = shuffle(currentWords().filter(x => x.id !== w.id)).slice(0, 3);
+  const opts = shuffle([w, ...others]);
+  const cont = document.getElementById('qIdOpts'); cont.innerHTML = '';
+  opts.forEach(opt => {
+    const b = document.createElement('button'); b.className = 'qopt'; b.textContent = opt.word;
+    b.onclick = () => { doSpeak(opt.word, null); answerMCQ(opt.id === w.id, b, w.word, 'qIdOpts'); };
+    cont.appendChild(b);
+  });
+}
+function answerMCQ(correct, btn, correctLabel, optsContainerId) {
+  if (S.quizAnswered) return;
+  S.quizAnswered = true;
+  document.querySelectorAll('#' + optsContainerId + ' .qopt').forEach(b => {
+    b.style.pointerEvents = 'none';
+    if (b.textContent === correctLabel) b.classList.add('correct');
+  });
+  if (!correct) btn.classList.add('wrong');
+  finishQuizAnswer(correct, S.quizPending[0]);
+}
+function finishQuizAnswer(correct, w) {
+  S.quizScore.total++; if (correct) S.quizScore.correct++;
+  updateScoreDisp();
+  const fb = document.getElementById('qFeedback');
+  fb.className = 'quiz-feedback ' + (correct ? 'ok' : 'no');
+  if (correct) {
+    // 答對：從待答佇列移除
+    S.quizPending.splice(S.quizPending.indexOf(w), 1);
+    fb.textContent = '✓ 正確！';
+    if (S.quizPending.length === 0) {
+      fb.textContent = '✓ 正確！本回合全部答對 🎉';
+    }
+  } else {
+    // 答錯：保留在佇列（稍後重出）
+    fb.innerHTML = '✗ 錯了！正確答案：<strong>' + (S.quizType === 'id' ? w.word : w.zh) + '</strong><br><span style="font-size:11px;opacity:0.7">此題將再次出現</span>';
+  }
+  fb.classList.remove('hidden');
+  document.getElementById('qNext').textContent = S.quizPending.length === 0 ? '重新開始 ↺' : '下一題 →';
+  document.getElementById('qNext').classList.remove('hidden');
+  recordQuizAnswer(correct);
+  if (correct) { S.todayNew = Math.min(S.todayNew + 1, 99); save(); updateUI(); }
+}
+function nextQuiz() {
+  if (S.quizPending.length === 0) {
+    // 全答對 → 重新整輪
+    startQuiz(); return;
+  }
+  // 找下一題：跳過剛剛那題（避免連續出同題），若只剩1題則直接出
+  if (S.quizPending.length > 1) {
+    // 把剛答錯的題目移到佇列尾端
+    const wrong = S.quizPending[0];
+    S.quizPending.splice(0, 1);
+    S.quizPending.push(wrong);
+  }
+  showQuizQ();
+}
+function showQuizQ() {
+  if (!S.quizPending.length) { startQuiz(); return; }
+  const w = S.quizPending[0];
+  S.quizAnswered = false;
+  document.getElementById('qFeedback').classList.add('hidden');
+  document.getElementById('qNext').classList.add('hidden');
+  // 顯示剩餘題數提示
+  const scoreEl = document.getElementById('qScoreDisp');
+  if (scoreEl) scoreEl.textContent = S.quizScore.correct + ' / ' + S.quizScore.total + '　剩 ' + S.quizPending.length + ' 題';
+  if (S.quizType === 'meaning') showMeaningQ(w);
+  else if (S.quizType === 'fill') showFillQ(w);
+  else showIdQ(w);
+}
+
+// ── 儲存例句系統 ──
+const LS_SAVED = 'ukbi_saved_examples';
+
+function loadSavedExamples() {
+  try { return JSON.parse(localStorage.getItem(LS_SAVED) || '[]'); }
+  catch(e) { return []; }
+}
+function persistSavedExamples(arr) { localStorage.setItem(LS_SAVED, JSON.stringify(arr)); }
+
+function saveCurrentExample() {
+  const w = S.queue[S.cardIdx % S.queue.length];
+  if (!w) return;
+  const arr = loadSavedExamples();
+  // 避免重複
+  if (arr.find(e => e.id === w.id)) {
+    showSaveToastMsg('📌 已在收藏庫中'); return;
+  }
+  arr.unshift({ id: w.id, word: w.word, pron: w.pron, pos: w.pos, zh: w.zh, ex: w.ex, exZh: w.exZh, savedAt: Date.now() });
+  persistSavedExamples(arr);
+  // 按鈕變色
+  const btn = document.getElementById('saveExBtn');
+  btn.classList.add('saved'); btn.textContent = '✅ 已儲存';
+  setTimeout(() => { btn.classList.remove('saved'); btn.textContent = '🔖 儲存例句'; }, 2000);
+  showSaveToastMsg('🔖 例句已儲存！');
+}
+
+function renderSavedPanel() {
+  const arr = loadSavedExamples();
+  const listEl  = document.getElementById('savedList');
+  const emptyEl = document.getElementById('savedEmpty');
+  const badgeEl = document.getElementById('savedCountBadge');
+  badgeEl.textContent = arr.length + ' 則例句';
+  if (arr.length === 0) {
+    listEl.innerHTML = '';
+    emptyEl.classList.remove('hidden');
+    return;
+  }
+  emptyEl.classList.add('hidden');
+  listEl.innerHTML = '';
+  arr.forEach((e, idx) => {
+    const d = new Date(e.savedAt);
+    const dateStr = d.getMonth()+1 + '/' + d.getDate();
+    // bold target word in example
+    const escaped = e.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const exHtml = e.ex.replace(new RegExp('(' + escaped + ')', 'i'), '<strong>$1</strong>');
+    const item = document.createElement('div');
+    item.className = 'saved-item';
+    item.innerHTML = `
+      <div class="saved-item-top">
+        <div>
+          <div class="saved-item-word">${e.word}</div>
+          <div class="saved-item-zh">${e.zh}</div>
+        </div>
+        <div class="saved-item-meta">
+          <span class="saved-item-pos">${e.pos}</span>
+          <span class="saved-item-date">${dateStr}</span>
+        </div>
+      </div>
+      <div class="saved-item-ex" onclick="doSpeak('${e.ex.replace(/'/g,"\\'")}', null)" title="點擊朗讀">${exHtml}</div>
+      <div class="saved-item-exzh">📖 ${e.exZh}</div>
+      <div class="saved-item-actions">
+        <button class="saved-action-btn" onclick="doSpeak('${e.word.replace(/'/g,"\\'")}', this)">🔊 單字</button>
+        <button class="saved-action-btn" onclick="doSpeak('${e.ex.replace(/'/g,"\\'")}', this)">🔊 例句</button>
+        <button class="saved-action-btn del" onclick="deleteSavedExample('${e.id}')">🗑 刪除</button>
+      </div>
+    `;
+    listEl.appendChild(item);
+  });
+}
+
+function deleteSavedExample(id) {
+  const arr = loadSavedExamples().filter(e => e.id !== id);
+  persistSavedExamples(arr);
+  renderSavedPanel();
+  showSaveToastMsg('已從收藏庫移除');
+}
+
+function clearAllSaved() {
+  if (!confirm('確定要清除全部儲存的例句嗎？')) return;
+  persistSavedExamples([]);
+  renderSavedPanel();
+  showSaveToastMsg('已清除全部儲存例句');
+}
+
+// ── 通用 Toast ──
+function showSaveToastMsg(msg) {
+  const el = document.getElementById('saveToast');
+  el.textContent = msg;
+  el.classList.add('show');
+  if (_toastTimer) clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => {
+    el.classList.remove('show');
+    setTimeout(() => { el.textContent = '💾 進度已儲存'; }, 400);
+  }, 2200);
+}
+
+// ── MODE ──
+function setMode(m) {
+  setModeInternal(m);
+  saveMode(m);
+}
+function setModeInternal(m) {
+  S.mode = m;
+  ['flash','list','quiz','reading','saved'].forEach(x => {
+    document.getElementById(x+'Mode').classList.toggle('hidden', x !== m);
+    document.getElementById('m'+x.charAt(0).toUpperCase()+x.slice(1)).classList.toggle('active', x === m);
+  });
+  if (m === 'flash') {
+    if (!S.queue.length) S.queue = shuffle(currentWords());
+    showCard();
+  } else if (m === 'list') renderList();
+  else if (m === 'quiz') startQuiz();
+  else if (m === 'reading') renderReading();
+  else if (m === 'saved') renderSavedPanel();
+}
+
+// ══════════════════════════════════════════════════════
+// ── 情境文資料庫（15週 × 7天 = 105 篇）──
+// 每篇含：type('dialogue'|'article'), title, subtitle,
+//   lines (對話) 或 paras (短文), vocabIds（本日單字）
+// ══════════════════════════════════════════════════════
+const READING_DB = {
+  '1-1': { type:'dialogue', title:'早晨的問候', subtitle:'兩個室友早上的日常對話',
+    lines:[
+      {sp:'Andi',  id:' A', text:'Hei, kamu sudah bangun? Sudah mandi belum?', zh:'嘿，你起來了嗎？洗澡了嗎？'},
+      {sp:'Budi',  id:' B', text:'Belum, saya baru saja bangun. Mau sarapan dulu.', zh:'還沒，我剛起床。想先吃早餐。'},
+      {sp:'Andi',  id:' A', text:'Ayo, kita makan bersama. Ibu sudah memasak nasi goreng.', zh:'來吧，我們一起吃。媽媽已經做好炒飯了。'},
+      {sp:'Budi',  id:' B', text:'Wah, enak sekali! Setelah makan, saya akan mandi dan berolahraga.', zh:'哇，太好了！吃完飯後，我要洗澡然後運動。'},
+      {sp:'Andi',  id:' A', text:'Oke, nanti kita berangkat ke kampus bersama.', zh:'好的，等下我們一起出發去學校。'},
+    ], vocab:['bangun','mandi','sarapan','berangkat','memasak','berolahraga'] },
+
+  '1-2': { type:'dialogue', title:'點餐時間', subtitle:'在印尼小吃攤的對話',
+    lines:[
+      {sp:'Pelayan', id:' A', text:'Selamat datang! Mau pesan apa, Mas?', zh:'歡迎！先生，您要點什麼？'},
+      {sp:'Tamu',   id:' B', text:'Saya mau nasi ayam goreng dan teh manis, berapa harganya?', zh:'我要炸雞飯和甜茶，多少錢？'},
+      {sp:'Pelayan', id:' A', text:'Nasi ayam dua puluh ribu, tehnya lima ribu. Mau pedas atau tidak pedas?', zh:'炸雞飯兩萬盾，茶五千盾。要辣還是不辣？'},
+      {sp:'Tamu',   id:' B', text:'Tidak pedas saja, terima kasih. Ayamnya pakai sayur juga?', zh:'就不辣吧，謝謝。雞肉也有附蔬菜嗎？'},
+      {sp:'Pelayan', id:' A', text:'Ada, ada sayur dan sambal. Sebentar ya, makanan masih panas.', zh:'有的，有蔬菜和辣醬。稍等，食物還是熱的。'},
+    ], vocab:['nasi','ayam','teh','sayur','pedas','manis','panas'] },
+
+  '1-3': { type:'dialogue', title:'搭公車上班', subtitle:'在公車站的對話',
+    lines:[
+      {sp:'Rina',  id:' A', text:'Permisi, bis ke Sudirman lewat sini tidak?', zh:'不好意思，去蘇迪曼的公車有經過這裡嗎？'},
+      {sp:'Bapak', id:' B', text:'Ada, bis nomor 6. Tapi ada kemacetan pagi ini, mungkin terlambat.', zh:'有的，6號公車。但今早有塞車，可能會晚。'},
+      {sp:'Rina',  id:' A', text:'Oh begitu. Kira-kira berapa menit lagi bisnya datang?', zh:'哦，這樣啊。公車大概還要幾分鐘才來？'},
+      {sp:'Bapak', id:' B', text:'Biasanya jadwalnya setiap 15 menit. Ini ada tiket yang bisa dibeli di sini.', zh:'通常時刻表是每15分鐘一班。這裡可以買票。'},
+      {sp:'Rina',  id:' A', text:'Baik, saya beli tiket dulu. Terima kasih, Pak!', zh:'好的，我先買票。謝謝您！'},
+    ], vocab:['bis','kemacetan','tiket','jadwal','jalan','penumpang'] },
+
+  '1-4': { type:'article', title:'我的家', subtitle:'一篇關於住家環境的短文',
+    paras:[
+      { id:'p1', text:'Rumah saya terletak di pinggir kota, tidak jauh dari taman. Rumahnya tidak besar, tapi sangat nyaman.', zh:'我的房子位於郊區，離公園不遠。房子不大，但非常舒適。' },
+      { id:'p2', text:'Di dalam rumah ada dapur, kamar mandi, ruang tamu, dan dua kamar tidur. Di kamar saya ada ranjang, meja belajar, dan lemari baju.', zh:'房子裡有廚房、浴室、客廳和兩間臥室。我的房間有床、書桌和衣櫃。' },
+      { id:'p3', text:'Setiap pagi, saya membuka jendela kamar agar udara segar masuk. Lantai rumah kami terbuat dari keramik yang selalu bersih.', zh:'每天早上，我打開房間窗戶讓新鮮空氣進來。我們家的地板是陶瓷製的，總是很乾淨。' },
+    ], vocab:['rumah','kamar','dapur','kamar mandi','ruang tamu','taman','jendela','lantai','ranjang','lemari','meja'] },
+
+  '1-5': { type:'dialogue', title:'在市場買東西', subtitle:'討價還價的日常對話',
+    lines:[
+      {sp:'Pembeli', id:' A', text:'Berapa harga baju ini, Bu?', zh:'這件衣服多少錢，阿姨？'},
+      {sp:'Penjual', id:' B', text:'Seratus ribu rupiah, Mbak. Kualitasnya bagus sekali!', zh:'十萬盾，小姐。品質非常好！'},
+      {sp:'Pembeli', id:' A', text:'Wah, mahal sekali. Boleh tawar tidak? Ukurannya juga ada yang lebih kecil?', zh:'哇，好貴。可以議價嗎？也有更小的尺寸嗎？'},
+      {sp:'Penjual', id:' B', text:'Boleh, harga terbaik delapan puluh ribu. Warna apa yang Mbak suka?', zh:'可以，最好的價格八萬盾。您喜歡什麼顏色？'},
+      {sp:'Pembeli', id:' A', text:'Warna merah saja. Saya bayar tunai ya. Ada struk pembeliannya?', zh:'就紅色好了。我付現金。有購買收據嗎？'},
+    ], vocab:['harga','mahal','murah','tawar','warna','ukuran','tunai','struk','toko','pasar'] },
+
+  '1-6': { type:'article', title:'一天的時間', subtitle:'描述每天不同時段的活動',
+    paras:[
+      { id:'p1', text:'Saya selalu bangun pagi pada pukul enam. Setelah mandi, saya sarapan dan kemudian berangkat ke kantor.', zh:'我總是早上六點起床。洗澡後，我吃早餐，然後出發去公司。' },
+      { id:'p2', text:'Siang hari, saya makan siang bersama teman-teman. Sore hari, saya biasanya berolahraga di taman dekat kantor.', zh:'中午，我和朋友一起吃午飯。下午，我通常在公司附近的公園運動。' },
+      { id:'p3', text:'Malam hari, saya pulang ke rumah, memasak makan malam, lalu menonton televisi atau membaca buku sebelum tidur.', zh:'晚上，我回家、煮晚餐，然後在睡前看電視或讀書。' },
+    ], vocab:['pagi','siang','sore','malam','waktu','hari','sudah','sedang','akan','pulang','tidur'] },
+
+  '1-7': { type:'dialogue', title:'描述一個人', subtitle:'朋友之間聊起新認識的人',
+    lines:[
+      {sp:'Sari',  id:' A', text:'Kamu sudah bertemu dengan guru baru kita? Orangnya seperti apa?', zh:'你見過我們的新老師了嗎？他是個什麼樣的人？'},
+      {sp:'Doni',  id:' B', text:'Sudah! Dia tinggi, ramah, dan sangat pintar. Tidak sombong sama sekali.', zh:'見過了！他很高、友善，而且非常聰明。一點都不自大。'},
+      {sp:'Sari',  id:' A', text:'Wah, kedengarannya menyenangkan. Apakah dia juga sabar mengajar?', zh:'哇，聽起來很不錯。他教書也很有耐心嗎？'},
+      {sp:'Doni',  id:' B', text:'Sangat sabar! Dan dia rajin memberikan contoh yang jelas. Pasti kita semua suka.', zh:'非常有耐心！而且他很勤奮地給出清楚的例子。我們大家一定都會喜歡。'},
+      {sp:'Sari',  id:' A', text:'Oke, saya tidak sabar untuk bertemu dengannya!', zh:'好的，我等不及要見他了！'},
+    ], vocab:['tinggi','ramah','pintar','sombong','sabar','rajin','cantik','tampan','rendah hati','bersemangat'] },
+
+  '2-1': { type:'dialogue', title:'求職面試', subtitle:'應徵者與人資的對話',
+    lines:[
+      {sp:'HRD',      id:' A', text:'Selamat pagi. Tolong ceritakan tentang pengalaman kerja Anda.', zh:'早安。請說說您的工作經驗。'},
+      {sp:'Pelamar',  id:' B', text:'Selamat pagi. Saya memiliki tiga tahun pengalaman di bidang pemasaran digital.', zh:'早安。我有三年數位行銷領域的工作經驗。'},
+      {sp:'HRD',      id:' A', text:'Baik. Apa kemampuan utama yang Anda miliki untuk pekerjaan ini?', zh:'好的。您有哪些主要能力適合這份工作？'},
+      {sp:'Pelamar',  id:' B', text:'Saya menguasai analisis data dan komunikasi yang baik. Prestasi terbesar saya adalah meningkatkan penjualan 40%.', zh:'我精通數據分析和良好的溝通能力。我最大的成就是讓銷售增加了40%。'},
+      {sp:'HRD',      id:' A', text:'Mengesankan! Berapa gaji yang Anda harapkan?', zh:'令人印象深刻！您期望的薪水是多少？'},
+    ], vocab:['pekerjaan','pengalaman','kemampuan','prestasi','gaji','karier','karyawan','atasan'] },
+
+  '2-2': { type:'article', title:'在辦公室裡', subtitle:'描述辦公室日常工作的短文',
+    paras:[
+      { id:'p1', text:'Setiap hari Senin, kami mengadakan rapat pagi bersama seluruh karyawan dan atasan untuk membahas rencana minggu ini.', zh:'每個週一，我們和所有員工及上司開早會，討論本週計劃。' },
+      { id:'p2', text:'Di kantor, saya bertanggung jawab mengelola email dan membuat laporan harian. Pengalaman kerja saya sangat membantu dalam tugas ini.', zh:'在辦公室，我負責管理電子郵件和製作每日報告。我的工作經驗對這項工作很有幫助。' },
+      { id:'p3', text:'Karier yang baik membutuhkan kemampuan yang terus berkembang dan semangat belajar yang tinggi setiap hari.', zh:'好的職涯需要持續發展的能力和每天高度的學習熱情。' },
+    ], vocab:['kantor','rapat','karyawan','atasan','pengalaman','kemampuan','karier','pekerjaan'] },
+
+  '2-3': { type:'dialogue', title:'在大學選課', subtitle:'學生和教授的對話',
+    lines:[
+      {sp:'Mahasiswa', id:' A', text:'Selamat pagi, Pak Dosen. Saya ingin bertanya soal mata kuliah semester ini.', zh:'早安，教授。我想詢問關於這學期課程的問題。'},
+      {sp:'Dosen',     id:' B', text:'Silakan. Jurusan apa yang kamu ambil sekarang?', zh:'請說。你現在讀哪個科系？'},
+      {sp:'Mahasiswa', id:' A', text:'Saya di jurusan manajemen, Pak. Apakah beasiswa tersedia untuk mahasiswa berprestasi?', zh:'我在管理科系，教授。對優秀學生有獎學金嗎？'},
+      {sp:'Dosen',     id:' B', text:'Ada beasiswa dari universitas. Kamu perlu mengajukan permohonan sebelum akhir bulan ini.', zh:'有大學提供的獎學金。你需要在本月底前提出申請。'},
+      {sp:'Mahasiswa', id:' A', text:'Baik, terima kasih banyak. Kurikulumnya juga sudah saya pelajari dengan baik.', zh:'好的，非常感謝。我也已經好好研究了課程綱要。'},
+    ], vocab:['universitas','jurusan','dosen','mahasiswa','kurikulum','beasiswa','pendidikan'] },
+
+  '2-4': { type:'article', title:'我的學習之路', subtitle:'一位學生分享學習心得',
+    paras:[
+      { id:'p1', text:'Pendidikan adalah investasi terbaik dalam hidup. Saya mulai kuliah di universitas negeri tiga tahun yang lalu.', zh:'教育是生命中最好的投資。我三年前開始在國立大學就讀。' },
+      { id:'p2', text:'Jurusan saya adalah ilmu komputer. Dosen-dosen di sini sangat berpengalaman dan selalu memberikan bimbingan dengan sabar.', zh:'我的科系是計算機科學。這裡的教授非常有經驗，總是耐心地給予指導。' },
+      { id:'p3', text:'Tahun ini, saya sedang menulis skripsi dan berharap bisa wisuda tepat waktu. Beasiswa yang saya terima sangat membantu biaya pendidikan.', zh:'今年，我正在寫學士論文，希望能準時畢業。我獲得的獎學金對教育費用很有幫助。' },
+    ], vocab:['pendidikan','universitas','jurusan','dosen','mahasiswa','skripsi','wisuda','beasiswa','penelitian'] },
+
+  '2-5': { type:'dialogue', title:'討論薪資福利', subtitle:'員工與人資部門的協商',
+    lines:[
+      {sp:'Karyawan', id:' A', text:'Selamat siang. Saya ingin mendiskusikan mengenai gaji dan tunjangan saya.', zh:'午安。我想討論一下我的薪資和補貼。'},
+      {sp:'HRD',      id:' B', text:'Tentu saja. Silakan duduk. Apa yang ingin Anda bicarakan?', zh:'當然可以。請坐。您想談什麼？'},
+      {sp:'Karyawan', id:' A', text:'Berdasarkan prestasi kerja saya tahun ini, saya berharap ada kenaikan gaji.', zh:'根據我今年的工作成就，我希望能加薪。'},
+      {sp:'HRD',      id:' B', text:'Prestasi Anda memang sangat baik. Kami akan mempertimbangkan usulan Anda.', zh:'您的成就確實非常好。我們會考慮您的建議。'},
+      {sp:'Karyawan', id:' A', text:'Terima kasih. Saya juga berharap bisa mengembangkan karier lebih lanjut di perusahaan ini.', zh:'謝謝。我也希望能在這家公司進一步發展我的職涯。'},
+    ], vocab:['gaji','prestasi','karier','karyawan','atasan','kemampuan','pengalaman'] },
+
+  '2-6': { type:'article', title:'世界各地的工作文化', subtitle:'比較不同職場文化的短文',
+    paras:[
+      { id:'p1', text:'Di Indonesia, budaya kerja sangat menghargai hubungan antar karyawan. Rapat sering dimulai dengan ngobrol santai sebelum masuk ke agenda utama.', zh:'在印尼，職場文化非常重視員工之間的關係。會議通常在進入主要議程前先進行輕鬆的閒聊。' },
+      { id:'p2', text:'Pengalaman dan senioritas sangat dihormati. Karyawan yang rajin dan jujur biasanya mendapat kepercayaan lebih dari atasan.', zh:'經驗和資歷受到很大尊重。勤奮和誠實的員工通常會得到上司更多的信任。' },
+      { id:'p3', text:'Saat ini, banyak perusahaan mulai menerapkan sistem kerja fleksibel untuk meningkatkan kemampuan dan kesejahteraan karyawan.', zh:'目前，許多公司開始實施彈性工作制度，以提升員工的能力和福祉。' },
+    ], vocab:['pekerjaan','karyawan','pengalaman','kemampuan','karier','rapat','rajin','jujur'] },
+
+  '2-7': { type:'dialogue', title:'申請升遷', subtitle:'員工向主管表達晉升意願',
+    lines:[
+      {sp:'Budi',   id:' A', text:'Pak, boleh saya berbicara sebentar mengenai karier saya?', zh:'先生，我可以稍微談談我的職涯嗎？'},
+      {sp:'Atasan', id:' B', text:'Tentu. Apa yang ingin kamu sampaikan?', zh:'當然。你想表達什麼？'},
+      {sp:'Budi',   id:' A', text:'Saya sudah bekerja di sini lima tahun dan merasa siap untuk tanggung jawab lebih besar.', zh:'我在這裡工作了五年，感覺準備好承擔更大的責任了。'},
+      {sp:'Atasan', id:' B', text:'Saya melihat prestasi dan pengalaman kamu sangat baik. Kita akan evaluasi bulan depan.', zh:'我看到你的成就和經驗都非常好。我們下個月會做評估。'},
+      {sp:'Budi',   id:' A', text:'Terima kasih, Pak. Saya akan terus meningkatkan kemampuan saya!', zh:'謝謝您。我會繼續提升我的能力！'},
+    ], vocab:['karier','prestasi','pengalaman','kemampuan','atasan','karyawan','gaji'] },
+
+  '3-1': { type:'article', title:'今日新聞', subtitle:'一篇關於印尼時事的短文',
+    paras:[
+      { id:'p1', text:'Pemerintah Indonesia baru saja mengeluarkan kebijakan baru untuk mendorong pertumbuhan ekonomi dan mengurangi kemiskinan di seluruh wilayah.', zh:'印尼政府剛剛發布了新政策，以促進全國各地的經濟成長並減少貧困。' },
+      { id:'p2', text:'Masyarakat menyambut kebijakan ini dengan positif. Namun, beberapa pihak menginginkan transparansi lebih dalam proses pelaksanaannya.', zh:'民眾以積極的態度迎接這項政策。然而，一些人士希望在執行過程中有更多的透明度。' },
+      { id:'p3', text:'Berita ini menjadi topik hangat di media sosial, dengan banyak warga yang mengungkapkan pendapat dan harapan mereka.', zh:'這則新聞成為社交媒體上的熱門話題，許多市民表達了他們的意見和期望。' },
+    ], vocab:['berita','pemerintah','kebijakan','masyarakat','kemiskinan','transparansi'] },
+
+  '3-2': { type:'dialogue', title:'談論政治新聞', subtitle:'兩個朋友討論最新時事',
+    lines:[
+      {sp:'Nia',  id:' A', text:'Kamu sudah baca berita hari ini? Ada kebijakan baru dari pemerintah.', zh:'你看今天的新聞了嗎？政府有新政策。'},
+      {sp:'Riko', id:' B', text:'Sudah. Menurutku, kebijakan ini bisa membantu masyarakat yang masih menghadapi kemiskinan.', zh:'看了。我認為這個政策可以幫助仍然面臨貧困的民眾。'},
+      {sp:'Nia',  id:' A', text:'Setuju, tapi kita perlu transparansi dan undang-undang yang jelas agar tidak terjadi korupsi.', zh:'同意，但我們需要透明度和明確的法律，以防止貪腐發生。'},
+      {sp:'Riko', id:' B', text:'Betul sekali. Dalam demokrasi, masyarakat punya hak untuk mengawasi pemerintah.', zh:'完全正確。在民主制度中，民眾有權監督政府。'},
+      {sp:'Nia',  id:' A', text:'Semoga pemilihan umum berikutnya menghasilkan pemimpin yang benar-benar peduli rakyat.', zh:'希望下次大選能產生真正關心人民的領導人。'},
+    ], vocab:['berita','pemerintah','kebijakan','masyarakat','demokrasi','pemilihan','korupsi','transparansi','undang-undang'] },
+
+  '3-3': { type:'article', title:'社會的挑戰', subtitle:'探討印尼社會議題的短文',
+    paras:[
+      { id:'p1', text:'Salah satu tantangan besar masyarakat Indonesia adalah ketimpangan sosial. Kemiskinan masih menjadi masalah di beberapa daerah terpencil.', zh:'印尼社會的重大挑戰之一是社會不平等。貧困在一些偏遠地區仍然是個問題。' },
+      { id:'p2', text:'Pengangguran juga menjadi perhatian serius. Pemerintah berupaya menciptakan lapangan kerja baru melalui berbagai program pemberdayaan masyarakat.', zh:'失業也是一個嚴重的關注點。政府通過各種社區賦權計劃努力創造新的就業機會。' },
+      { id:'p3', text:'Namun, semangat persatuan dan toleransi yang kuat menjadi kekuatan utama bangsa Indonesia dalam menghadapi setiap tantangan.', zh:'然而，強烈的團結和寬容精神成為印尼民族面對每一個挑戰的主要力量。' },
+    ], vocab:['masyarakat','kemiskinan','pengangguran','persatuan','toleransi','pemerintah','kebijakan'] },
+
+  '3-4': { type:'dialogue', title:'法律與公民', subtitle:'公民課上的討論',
+    lines:[
+      {sp:'Guru',    id:' A', text:'Hari ini kita belajar tentang undang-undang dan hak asasi manusia. Ada pertanyaan?', zh:'今天我們學習法律和人權。有問題嗎？'},
+      {sp:'Siswa',   id:' B', text:'Bu, apa bedanya peraturan dan undang-undang?', zh:'老師，規定和法律有什麼區別？'},
+      {sp:'Guru',    id:' A', text:'Bagus pertanyaannya! Undang-undang dibuat oleh DPR, sedangkan peraturan dibuat oleh pemerintah daerah.', zh:'問得好！法律由國會制定，而規定由地方政府制定。'},
+      {sp:'Siswa',   id:' B', text:'Apakah setiap warga negara punya kewajiban yang sama di depan hukum?', zh:'每個公民在法律面前有同樣的義務嗎？'},
+      {sp:'Guru',    id:' A', text:'Ya! Keadilan dan kesetaraan adalah prinsip dasar sistem hukum kita.', zh:'是的！正義和平等是我們法律制度的基本原則。'},
+    ], vocab:['undang-undang','peraturan','keadilan','kesetaraan','hak asasi','kebebasan','masyarakat','pemerintah'] },
+
+  '3-5': { type:'article', title:'投票的重要性', subtitle:'關於選舉和公民責任的短文',
+    paras:[
+      { id:'p1', text:'Pemilihan umum adalah salah satu pilar demokrasi. Setiap warga negara yang sudah dewasa berhak memberikan suaranya.', zh:'大選是民主的支柱之一。每位成年公民都有權投票。' },
+      { id:'p2', text:'Dengan mengikuti pemilihan, kita turut menentukan arah kebijakan negara. Ini adalah bentuk nyata kebebasan dan hak asasi yang kita miliki.', zh:'通過參與選舉，我們共同決定國家政策的方向。這是我們擁有的自由和人權的具體體現。' },
+      { id:'p3', text:'Transparansi dalam proses pemilihan sangat penting untuk menjaga kepercayaan masyarakat terhadap sistem demokrasi.', zh:'選舉過程中的透明度對於維護民眾對民主制度的信任非常重要。' },
+    ], vocab:['pemilihan','demokrasi','kebebasan','hak asasi','masyarakat','transparansi','kebijakan'] },
+
+  '3-6': { type:'dialogue', title:'談論治安問題', subtitle:'鄰居之間的對話',
+    lines:[
+      {sp:'Pak Hadi', id:' A', text:'Selamat malam, Bu. Apakah Ibu tahu ada pencurian di RT kita kemarin malam?', zh:'晚安，阿姨。您知道昨晚我們社區有盜竊案嗎？'},
+      {sp:'Bu Sari',  id:' B', text:'Ya, saya sudah dengar. Sangat mengkhawatirkan. Keamanan warga perlu ditingkatkan.', zh:'是的，我聽說了。很令人擔憂。需要提升居民的安全。'},
+      {sp:'Pak Hadi', id:' A', text:'Betul. Kita perlu melaporkan ke polisi dan minta bantuan pemerintah setempat.', zh:'對。我們需要向警察報案，並請求當地政府協助。'},
+      {sp:'Bu Sari',  id:' B', text:'Saya setuju. Peraturan keamanan lingkungan harus ditegakkan dengan lebih ketat.', zh:'我同意。社區安全規定必須更嚴格地執行。'},
+    ], vocab:['peraturan','pemerintah','keadilan','masyarakat','unjuk rasa','undang-undang'] },
+
+  '3-7': { type:'article', title:'公民的責任', subtitle:'探討公民義務的短文',
+    paras:[
+      { id:'p1', text:'Sebagai warga negara yang baik, kita memiliki kewajiban untuk mematuhi peraturan dan undang-undang yang berlaku.', zh:'作為好公民，我們有義務遵守現行的規定和法律。' },
+      { id:'p2', text:'Kebebasan berbicara adalah hak dasar setiap warga. Namun, kebebasan ini harus digunakan secara bertanggung jawab tanpa melanggar hak orang lain.', zh:'言論自由是每位公民的基本權利。但這種自由必須在不侵犯他人權利的前提下負責任地使用。' },
+      { id:'p3', text:'Toleransi dan rasa persatuan adalah fondasi penting bagi sebuah masyarakat yang damai dan harmonis.', zh:'寬容和團結感是一個和平、和諧社會的重要基礎。' },
+    ], vocab:['peraturan','undang-undang','kebebasan','hak asasi','toleransi','persatuan','masyarakat','keadilan','kesetaraan'] },
+
+  '4-1': { type:'dialogue', title:'環境問題討論', subtitle:'兩位朋友討論環保議題',
+    lines:[
+      {sp:'Lina', id:' A', text:'Kamu lihat berita tentang polusi udara di kota kita? Sudah sangat parah.', zh:'你看到我們城市空氣污染的新聞了嗎？已經非常嚴重了。'},
+      {sp:'Deni', id:' B', text:'Ya, sangat mengkhawatirkan. Perubahan iklim juga membuat cuaca semakin tidak menentu.', zh:'是的，非常令人擔憂。氣候變化也使天氣越來越不穩定。'},
+      {sp:'Lina', id:' A', text:'Kita harus mulai dari diri sendiri. Daur ulang sampah dan kurangi penggunaan plastik.', zh:'我們必須從自己做起。垃圾回收和減少塑膠使用。'},
+      {sp:'Deni', id:' B', text:'Setuju! Konservasi hutan juga sangat penting untuk menjaga keanekaragaman hayati.', zh:'同意！保育森林對維護生物多樣性也非常重要。'},
+      {sp:'Lina', id:' A', text:'Kita perlu pembangunan yang berkelanjutan agar lingkungan tetap terjaga untuk generasi berikutnya.', zh:'我們需要永續發展，讓環境為下一代得以保存。'},
+    ], vocab:['lingkungan','polusi','perubahan iklim','daur ulang','berkelanjutan','konservasi','keanekaragaman'] },
+
+  '4-2': { type:'article', title:'氣候變化的影響', subtitle:'一篇關於環境的科普短文',
+    paras:[
+      { id:'p1', text:'Perubahan iklim global telah menyebabkan berbagai bencana alam di seluruh dunia, termasuk banjir, kekeringan, dan badai yang semakin sering terjadi.', zh:'全球氣候變化已在世界各地造成各種自然災害，包括越來越頻繁的洪水、乾旱和風暴。' },
+      { id:'p2', text:'Polusi udara dari kendaraan bermotor dan pabrik menjadi penyebab utama buruknya kualitas lingkungan di kota-kota besar Indonesia.', zh:'機動車輛和工廠的空氣污染是印尼大城市環境品質惡化的主要原因。' },
+      { id:'p3', text:'Untuk menjaga kelestarian lingkungan, setiap individu perlu berkomitmen menerapkan gaya hidup berkelanjutan dalam kehidupan sehari-hari.', zh:'為了保護環境，每個人需要承諾在日常生活中實踐永續的生活方式。' },
+    ], vocab:['lingkungan','polusi','perubahan iklim','bencana alam','daur ulang','berkelanjutan','konservasi'] },
+
+  '4-3': { type:'dialogue', title:'去看醫生', subtitle:'病人和醫生的對話',
+    lines:[
+      {sp:'Dokter',  id:' A', text:'Selamat pagi. Ada keluhan apa hari ini?', zh:'早安。今天有什麼不舒服？'},
+      {sp:'Pasien',  id:' B', text:'Selamat pagi, Dokter. Saya merasa tidak enak badan sejak kemarin. Ada gejala demam dan batuk.', zh:'早安，醫生。我從昨天就覺得不舒服。有發燒和咳嗽的症狀。'},
+      {sp:'Dokter',  id:' A', text:'Baik, saya akan periksa dulu. Apakah ada penyakit lain yang sedang Anda derita?', zh:'好的，我先做個檢查。您還有其他正在患的疾病嗎？'},
+      {sp:'Pasien',  id:' B', text:'Tidak ada, Dokter. Tapi saya merasa stres belakangan ini karena banyak pekerjaan.', zh:'沒有，醫生。但我最近因為工作很多而感到壓力。'},
+      {sp:'Dokter',  id:' A', text:'Saya akan berikan obat dan saran. Istirahat yang cukup sangat penting untuk kesehatan Anda.', zh:'我會給您藥物和建議。充足的休息對您的健康非常重要。'},
+    ], vocab:['dokter','penyakit','gejala','obat','kesehatan','rumah sakit','pemeriksaan','stres'] },
+
+  '4-4': { type:'article', title:'健康的生活方式', subtitle:'關於維持健康的短文',
+    paras:[
+      { id:'p1', text:'Kesehatan adalah aset paling berharga dalam hidup. Untuk menjaga kesehatan, kita perlu memperhatikan pola makan, olahraga, dan istirahat yang cukup.', zh:'健康是生命中最寶貴的資產。為了保持健康，我們需要注意飲食習慣、運動和充足的休息。' },
+      { id:'p2', text:'Gizi yang seimbang sangat penting. Konsumsi buah, sayur, dan protein yang cukup dapat mencegah berbagai penyakit kronis.', zh:'均衡的營養非常重要。攝取足夠的水果、蔬菜和蛋白質可以預防各種慢性疾病。' },
+      { id:'p3', text:'Stres yang berlebihan dapat melemahkan sistem imun tubuh. Imunisasi rutin dan pemeriksaan kesehatan berkala juga sangat dianjurkan.', zh:'過度的壓力會削弱身體的免疫系統。定期免疫接種和定期健康檢查也非常建議。' },
+    ], vocab:['kesehatan','penyakit','gejala','obat','dokter','gizi','pola makan','olahraga','stres','imunisasi','pemeriksaan'] },
+
+  '5-1': { type:'dialogue', title:'談論科技', subtitle:'兩個大學生討論數位科技',
+    lines:[
+      {sp:'Farid', id:' A', text:'Kamu sudah coba aplikasi AI terbaru itu? Kecerdasan buatannya luar biasa!', zh:'你試過那個最新的AI應用程式了嗎？人工智慧真的很厲害！'},
+      {sp:'Nisa',  id:' B', text:'Sudah! Teknologi digital memang berkembang sangat pesat. Tapi keamanan data kita juga perlu diperhatikan.', zh:'試過了！數位科技確實發展得非常快。但我們的數據安全也需要注意。'},
+      {sp:'Farid', id:' A', text:'Betul. Enkripsi data dan keamanan siber menjadi semakin penting sekarang ini.', zh:'對。數據加密和網路安全現在變得越來越重要。'},
+      {sp:'Nisa',  id:' B', text:'Startup teknologi Indonesia juga sudah mulai berinovasi di bidang kecerdasan buatan.', zh:'印尼的科技新創公司也已經開始在人工智慧領域創新了。'},
+      {sp:'Farid', id:' A', text:'Ya! Platform digital lokal kita punya potensi besar untuk berkembang di pasar global.', zh:'是啊！我們本地的數位平台在全球市場有很大的發展潛力。'},
+    ], vocab:['teknologi','internet','aplikasi','kecerdasan buatan','keamanan siber','enkripsi','startup','platform','inovasi'] },
+
+  '5-2': { type:'article', title:'數位時代的生活', subtitle:'探討科技對日常生活影響的短文',
+    paras:[
+      { id:'p1', text:'Teknologi digital telah mengubah cara kita bekerja, berkomunikasi, dan belajar. Sekarang, hampir semua aktivitas bisa dilakukan melalui perangkat digital.', zh:'數位科技改變了我們工作、溝通和學習的方式。現在，幾乎所有活動都可以透過數位設備完成。' },
+      { id:'p2', text:'Media sosial memungkinkan kita terhubung dengan orang-orang di seluruh dunia. Namun, penggunaan media sosial yang berlebihan bisa berdampak negatif pada kesehatan mental.', zh:'社交媒體讓我們與世界各地的人聯繫。然而，過度使用社交媒體可能對心理健康產生負面影響。' },
+      { id:'p3', text:'Di era digitalisasi ini, kemampuan literasi digital menjadi keterampilan yang sangat penting untuk dimiliki setiap orang.', zh:'在這個數位化時代，數位素養能力成為每個人都需要具備的非常重要的技能。' },
+    ], vocab:['teknologi','internet','aplikasi','media sosial','digitalisasi','perangkat','platform','inovasi','data'] },
+
+  '6-1': { type:'dialogue', title:'談論投資', subtitle:'朋友之間的財務討論',
+    lines:[
+      {sp:'Hendra', id:' A', text:'Kamu sudah mulai investasi? Ekonomi sekarang tidak menentu sekali.', zh:'你開始投資了嗎？現在的經濟很不穩定。'},
+      {sp:'Putri',  id:' B', text:'Sudah, saya investasi di reksa dana. Pendapatan dari investasi lumayan untuk menambah penghasilan.', zh:'開始了，我投資在共同基金。投資收入還不錯，可以增加收入。'},
+      {sp:'Hendra', id:' A', text:'Bagaimana dengan pajak atas keuntungan investasi? Itu perlu diperhitungkan juga.', zh:'投資收益的稅呢？那也需要考慮進去。'},
+      {sp:'Putri',  id:' B', text:'Betul, ada pajaknya. Tapi secara keseluruhan, keuntungannya masih lebih besar dari kerugiannya.', zh:'對，有稅。但整體而言，收益仍然大於損失。'},
+      {sp:'Hendra', id:' A', text:'Oke, mungkin saya perlu belajar lebih banyak tentang modal dan strategi investasi yang tepat.', zh:'好的，也許我需要更多地學習資本和正確的投資策略。'},
+    ], vocab:['ekonomi','investasi','pendapatan','pajak','keuntungan','kerugian','modal','inflasi'] },
+
+  '6-2': { type:'article', title:'印尼的貿易', subtitle:'關於印尼國際貿易的短文',
+    paras:[
+      { id:'p1', text:'Indonesia adalah salah satu negara dengan ekspor terbesar di Asia Tenggara. Produk unggulan ekspor Indonesia antara lain kelapa sawit, batu bara, dan produk elektronik.', zh:'印尼是東南亞出口最多的國家之一。印尼的主要出口產品包括棕櫚油、煤炭和電子產品。' },
+      { id:'p2', text:'Di sisi lain, Indonesia juga melakukan impor besar-besaran untuk barang-barang yang belum dapat diproduksi secara lokal, terutama mesin dan teknologi canggih.', zh:'另一方面，印尼也大量進口國內尚不能生產的商品，特別是機械和先進技術。' },
+      { id:'p3', text:'Pertumbuhan perdagangan internasional yang stabil sangat penting bagi peningkatan pendapatan negara dan kesejahteraan masyarakat.', zh:'穩定的國際貿易增長對於增加國家收入和民眾福祉非常重要。' },
+    ], vocab:['ekonomi','perdagangan','investasi','ekspor','impor','pendapatan','pertumbuhan','inflasi','kurs'] },
+
+  '7-1': { type:'dialogue', title:'談論傳統藝術', subtitle:'在藝術展覽上的對話',
+    lines:[
+      {sp:'Wati',  id:' A', text:'Kamu pernah nonton pertunjukan wayang? Seni tradisional ini sangat memukau.', zh:'你看過皮影戲表演嗎？這個傳統藝術非常令人著迷。'},
+      {sp:'Rudi',  id:' B', text:'Sudah pernah! Dan batik juga merupakan warisan budaya yang sangat berharga. Motifnya luar biasa indah.', zh:'看過！峇迪布也是非常寶貴的文化遺產。它的圖案美麗極了。'},
+      {sp:'Wati',  id:' A', text:'Benar. Pelestarian kebudayaan seperti tari tradisional dan musik gamelan sangat penting.', zh:'對。像傳統舞蹈和甘美蘭音樂這樣的文化保護非常重要。'},
+      {sp:'Rudi',  id:' B', text:'Keragaman budaya adalah kekuatan terbesar Indonesia. Kita harus bangga dan melestarikannya.', zh:'文化多元性是印尼最大的力量。我們應該為此驕傲並加以保護。'},
+      {sp:'Wati',  id:' A', text:'Setuju! Festival budaya tahunan membantu memperkenalkan tradisi kita kepada dunia.', zh:'同意！年度文化節有助於向世界介紹我們的傳統。'},
+    ], vocab:['kebudayaan','tradisi','seni','tari','musik','batik','wayang','warisan','festival','pelestarian','keragaman'] },
+
+  '7-2': { type:'article', title:'印尼的宗教多元', subtitle:'關於宗教寬容的短文',
+    paras:[
+      { id:'p1', text:'Indonesia adalah negara dengan keberagaman agama yang luar biasa. Ada enam agama yang diakui secara resmi, dan semuanya hidup berdampingan dengan damai.', zh:'印尼是一個宗教多樣性非常豐富的國家。有六種官方認可的宗教，它們都和平共存。' },
+      { id:'p2', text:'Toleransi beragama merupakan salah satu nilai inti bangsa Indonesia yang tercermin dalam semboyan nasional "Bhinneka Tunggal Ika" atau "berbeda-beda tetapi tetap satu".', zh:'宗教寬容是印尼民族的核心價值之一，體現在「雖異實同」的國家格言中。' },
+      { id:'p3', text:'Upacara adat dan kepercayaan lokal juga menjadi bagian penting dari warisan budaya yang harus dijaga dan dilestarikan.', zh:'傳統儀式和地方信仰也是必須保護和保存的重要文化遺產的一部分。' },
+    ], vocab:['kebudayaan','tradisi','toleransi beragama','kepercayaan','warisan','upacara','pelestarian','keragaman'] },
+
+  '8-1': { type:'article', title:'因果關係的表達', subtitle:'學習連接詞 karena 和 sehingga 的用法',
+    paras:[
+      { id:'p1', text:'Saya terlambat datang ke kantor karena kemacetan yang parah di jalan tol pagi ini. Akibatnya, rapat pagi harus ditunda.', zh:'我上班遲到了，因為今早高速公路上嚴重塞車。因此，早晨會議不得不推遲。' },
+      { id:'p2', text:'Dia belajar dengan sangat giat sehingga berhasil lulus ujian dengan nilai tertinggi di kelasnya.', zh:'他非常努力學習，以致以班上最高分通過了考試。' },
+      { id:'p3', text:'Meskipun cuaca buruk, acara festival tetap berlangsung karena sudah dipersiapkan dengan matang. Oleh karena itu, semua peserta tetap hadir.', zh:'儘管天氣惡劣，文化節活動還是如期舉行，因為已經做了充分準備。因此，所有參與者仍然出席了。' },
+    ], vocab:['meskipun','sehingga','karena','akibat','oleh karena itu','namun','sedangkan','bahkan'] },
+
+  '8-2': { type:'dialogue', title:'轉折與對比', subtitle:'學習 namun、sedangkan 的用法',
+    lines:[
+      {sp:'Ana',  id:' A', text:'Harganya mahal, namun kualitas produk ini memang sangat baik. Aku tetap membelinya.', zh:'價格很貴，然而這個產品的品質確實非常好。我還是買了它。'},
+      {sp:'Bima', id:' B', text:'Saya suka kopi, sedangkan adikku lebih suka teh. Kami selalu berbeda pilihan!', zh:'我喜歡咖啡，而我弟弟更喜歡茶。我們的選擇總是不同！'},
+      {sp:'Ana',  id:' A', text:'Justru perbedaan itu yang membuat hidup lebih menarik. Sebaliknya, kalau semua sama kan membosankan.', zh:'恰恰是這種差異讓生活更有趣。相反地，如果什麼都一樣多無聊啊。'},
+      {sp:'Bima', id:' B', text:'Betul! Bahkan dalam keluarga kita pun ada banyak perbedaan pendapat, namun kita tetap rukun.', zh:'對！即使在我們家裡也有很多不同意見，然而我們仍然和睦相處。'},
+    ], vocab:['namun','sedangkan','justru','sebaliknya','bahkan','meskipun','walaupun','akan tetapi'] },
+
+  '9-1': { type:'article', title:'學術寫作入門', subtitle:'關於學術文章結構的說明',
+    paras:[
+      { id:'p1', text:'Dalam penulisan akademis, hipotesis harus didukung oleh bukti dan analisis yang kuat. Metodologi penelitian yang tepat akan menghasilkan temuan yang valid.', zh:'在學術寫作中，假設必須得到有力的證據和分析的支持。恰當的研究方法論將產生有效的研究發現。' },
+      { id:'p2', text:'Berdasarkan hasil survei dan wawancara dengan 200 responden, penelitian ini menemukan bahwa populasi yang diteliti memiliki tingkat literasi digital yang beragam.', zh:'根據對200名受訪者進行的調查和訪談結果，這項研究發現被研究的母群體具有不同程度的數位素養。' },
+      { id:'p3', text:'Kesimpulan yang dihasilkan dari observasi dan eksperimen harus disajikan secara objektif, tanpa interpretasi yang bersifat subjektif.', zh:'從觀察和實驗得出的結論必須客觀地呈現，不帶主觀性的詮釋。' },
+    ], vocab:['analisis','hipotesis','metodologi','kesimpulan','referensi','signifikan','objektif','subjektif','variabel','sampel','populasi','survei','wawancara','observasi','eksperimen','temuan'] },
+
+  '10-1': { type:'dialogue', title:'辯論環保議題', subtitle:'小組討論中的意見交換',
+    lines:[
+      {sp:'Reza',  id:' A', text:'Menurut saya, pemerintah harus segera mengambil tindakan nyata terhadap polusi lingkungan.', zh:'我認為政府必須立即對環境污染採取實際行動。'},
+      {sp:'Dita',  id:' B', text:'Saya setuju dengan pendapat itu. Buktinya, kualitas udara di kota besar terus memburuk.', zh:'我同意這個意見。有證據表明，大城市的空氣品質持續惡化。'},
+      {sp:'Fajar', id:' A', text:'Tapi saya menolak jika semua tanggung jawab dibebankan ke pemerintah. Masyarakat juga harus berperan.', zh:'但我反對將所有責任都歸咎於政府。社會大眾也必須發揮作用。'},
+      {sp:'Dita',  id:' B', text:'Saya mendukung pandangan itu. Kita perlu membuktikan komitmen bersama melalui tindakan nyata sehari-hari.', zh:'我支持這個觀點。我們需要透過日常的實際行動來證明共同的承諾。'},
+      {sp:'Reza',  id:' A', text:'Dengan demikian, solusi terbaik adalah kerja sama antara pemerintah dan masyarakat.', zh:'如此一來，最好的解決方案是政府和民眾之間的合作。'},
+    ], vocab:['pendapat','argumen','bukti','setuju','menolak','mendukung','menyimpulkan','membuktikan','perspektif','relevan'] },
+
+  '11-1': { type:'article', title:'閱讀理解技巧', subtitle:'如何快速掌握文章主旨',
+    paras:[
+      { id:'p1', text:'Berdasarkan hasil penelitian, kemampuan membaca kritis terkait erat dengan prestasi akademis seseorang. Hal ini menunjukkan betapa pentingnya literasi dalam pendidikan.', zh:'根據研究結果，批判性閱讀能力與一個人的學業成就密切相關。這顯示了識字能力在教育中的重要性。' },
+      { id:'p2', text:'Setiap paragraf dalam sebuah teks biasanya memiliki gagasan pokok yang menggambarkan isi utama. Memahami makna dan konteks kata-kata sangat membantu dalam memahami keseluruhan teks.', zh:'一個文本中的每個段落通常都有描述主要內容的主要思想。理解詞語的含義和語境對於理解整個文本很有幫助。' },
+      { id:'p3', text:'Menurut para ahli, membaca secara aktif — dengan menandai kata kunci dan membuat catatan — secara keseluruhan jauh lebih efektif daripada sekadar membaca pasif.', zh:'根據專家所說，主動閱讀——標記關鍵詞和做筆記——整體上遠比單純被動閱讀有效得多。' },
+    ], vocab:['menurut','berdasarkan','terkait','menunjukkan','mencerminkan','pada akhirnya','secara keseluruhan','sesuai','makna','konteks','paragraf','gagasan pokok'] },
+
+  '12-1': { type:'dialogue', title:'正式場合的自我介紹', subtitle:'在研討會上的開場白',
+    lines:[
+      {sp:'Moderator', id:' A', text:'Hadirin yang terhormat, perkenalkan pembicara utama kita hari ini.', zh:'尊敬的來賓，請允許我介紹我們今天的主要演講者。'},
+      {sp:'Pembicara', id:' B', text:'Terima kasih atas kesempatan yang diberikan. Saya ingin menyampaikan beberapa pandangan tentang inovasi digital.', zh:'感謝給予的機會。我想表達一些關於數位創新的觀點。'},
+      {sp:'Moderator', id:' A', text:'Silakan. Hadirin sangat antusias mendengarkan presentasi Bapak.', zh:'請。來賓們非常期待聆聽您的演講。'},
+      {sp:'Pembicara', id:' B', text:'Baik. Saya akan mengungkapkan data terbaru dan mengusulkan beberapa solusi konkret.', zh:'好的。我將揭示最新數據，並提議一些具體的解決方案。'},
+      {sp:'Moderator', id:' A', text:'Kami mempersilakan Bapak untuk memulai. Terima kasih sudah memastikan semuanya siap.', zh:'我們邀請您開始。感謝您確保一切都準備好了。'},
+    ], vocab:['perkenalkan','menyampaikan','mengungkapkan','mengusulkan','memastikan','mempersilakan','berdiskusi','merespons'] },
+
+  '13-1': { type:'article', title:'UKBI 考試技巧', subtitle:'備考閱讀策略',
+    paras:[
+      { id:'p1', text:'Dalam tes UKBI, kemampuan memahami sinonim dan antonim sangat diuji. Misalnya, sinonim dari "besar" adalah "raksasa", sedangkan antonim dari "panas" adalah "dingin".', zh:'在UKBI測試中，理解同義詞和反義詞的能力受到很大考驗。例如，「大」的同義詞是「巨大」，而「熱」的反義詞是「冷」。' },
+      { id:'p2', text:'Setiap soal biasanya membutuhkan pemahaman konteks kalimat secara menyeluruh. Konotasi sebuah kata bisa berbeda dari denotasinya tergantung pada konteks penggunaannya.', zh:'每道題通常需要對句子語境有全面的理解。一個詞的隱含意義可能與其字面意義不同，這取決於使用語境。' },
+      { id:'p3', text:'Idiom dan peribahasa juga sering muncul. Memahami makna idiom secara keseluruhan — bukan kata per kata — adalah kunci untuk menjawab pertanyaan dengan tepat.', zh:'慣用語和諺語也經常出現。整體理解慣用語的含義——而不是逐字理解——是準確回答問題的關鍵。' },
+    ], vocab:['sinonim','antonim','makna','konteks','konotasi','denotasi','idiom','peribahasa','paragraf','gagasan pokok'] },
+
+  '14-1': { type:'dialogue', title:'易混淆詞彙練習', subtitle:'學習區分相似詞彙',
+    lines:[
+      {sp:'Guru',   id:' A', text:'Mari kita bahas kata yang sering membingungkan. "Meningkat" dan "bertambah" apa bedanya?', zh:'讓我們討論常讓人困惑的詞。「增加」和「增多」有什麼區別？'},
+      {sp:'Siswa',  id:' B', text:'Hmm... keduanya berarti bertambah banyak, tapi "meningkat" lebih untuk hal yang naik secara bertahap?', zh:'嗯……兩者都意思是增多，但「meningkat」更用於逐漸上升的事物？'},
+      {sp:'Guru',   id:' A', text:'Tepat! "Meningkat" biasanya untuk angka atau kualitas. "Bertambah" lebih umum. Bagaimana dengan "memburuk" dan "melemah"?', zh:'正確！「meningkat」通常用於數字或品質。「bertambah」更通用。那「惡化」和「走弱」呢？'},
+      {sp:'Siswa',  id:' B', text:'Kalau "memburuk" artinya kondisinya menjadi lebih jelek, sedangkan "melemah" artinya kekuatannya berkurang.', zh:'「memburuk」是指狀況變得更差，而「melemah」是指力量/強度減少。'},
+      {sp:'Guru',   id:' A', text:'Luar biasa! Kamu bisa mempercepat pemahaman dengan banyak membaca contoh kalimat nyata.', zh:'太棒了！你可以通過大量閱讀真實的句子例子來加速理解。'},
+    ], vocab:['meningkat','menurun','menguat','melemah','memburuk','membaik','bertambah','berkurang','mempercepat','memperlambat'] },
+
+  '15-1': { type:'article', title:'最終衝刺：核心詞彙', subtitle:'考前總複習短文',
+    paras:[
+      { id:'p1', text:'Pembangunan sumber daya manusia adalah prioritas utama dalam strategi pengembangan nasional. Peningkatan kualitas pendidikan menjadi kunci keberhasilan jangka panjang.', zh:'人力資源建設是國家發展戰略的首要優先事項。提升教育品質成為長期成功的關鍵。' },
+      { id:'p2', text:'Berbagai hambatan dan tantangan harus diatasi dengan solusi yang kreatif dan komitmen yang kuat dari semua pihak. Upaya kolaboratif antara pemerintah dan masyarakat sangat diperlukan.', zh:'各種障礙和挑戰必須用創造性的解決方案和各方的強力承諾來克服。政府和民眾之間的協作努力非常必要。' },
+      { id:'p3', text:'Pada akhirnya, evaluasi berkala terhadap setiap program yang dijalankan akan membantu memastikan bahwa target yang ditetapkan dapat diwujudkan secara efektif dan berkelanjutan.', zh:'最終，對每個正在執行的計畫進行定期評估，將有助於確保既定目標能夠有效且永續地實現。' },
+    ], vocab:['pembangunan','pengembangan','peningkatan','strategi','prioritas','komitmen','solusi','hambatan','tantangan','evaluasi','target','upaya'] },
+};
+
+// 取得對應的情境文（若無完整資料則自動產生說明）
+function getReading(week, day) {
+  const key = week + '-' + day;
+  if (READING_DB[key]) return READING_DB[key];
+  // fallback：用當週主題自動生成說明卡
+  const wm = WEEKS_META[week - 1];
+  return {
+    type: 'article',
+    title: wm.days[day - 1],
+    subtitle: wm.title,
+    paras: [
+      { id:'f1', text: 'Hari ini kita belajar kosakata tentang topik "' + wm.days[day-1] + '". Semua kata yang dipelajari hari ini berkaitan erat dengan tema ' + wm.title + '.', zh: '今天我們學習關於「' + wm.days[day-1] + '」的詞彙。今天學習的所有單字都與' + wm.title + '主題密切相關。' },
+      { id:'f2', text: 'Cobalah gunakan kata-kata baru ini dalam kalimat sehari-hari. Semakin sering digunakan, semakin mudah diingat dan dikuasai.', zh: '試著在日常句子中使用這些新單字。使用得越頻繁，就越容易記住和掌握。' },
+      { id:'f3', text: 'Setelah membaca teks ini, jangan lupa berlatih dengan mode kuis untuk menguji pemahaman kamu!', zh: '讀完這篇文字後，別忘了用測驗模式來測試自己的理解！' },
+    ],
+    vocab: [],
+  };
+}
+
+// ── 情境文渲染 ──
+let _readingText = ''; // 供朗讀使用
+
+function renderReading() {
+  const data = getReading(S.week, S.day);
+  const wordsToday = currentWords().map(w => w.word.toLowerCase());
+
+  // badge
+  const badge = document.getElementById('readingTypeBadge');
+  badge.textContent = data.type === 'dialogue' ? '對話' : '短文';
+  badge.className = 'reading-type-badge ' + (data.type === 'dialogue' ? 'dialogue' : 'article');
+
+  document.getElementById('readingTitle').textContent = data.title;
+  document.getElementById('readingSubtitle').textContent = data.subtitle;
+
+  const body = document.getElementById('readingBody');
+  body.innerHTML = '';
+  _readingText = '';
+
+  if (data.type === 'dialogue') {
+    data.lines.forEach((line, i) => {
+      const row = document.createElement('div');
+      row.className = 'dialogue-line';
+      const spEl = document.createElement('div');
+      spEl.className = 'dialogue-speaker' + (i % 2 === 1 ? ' b' : '');
+      spEl.textContent = line.sp;
+      const textWrap = document.createElement('div');
+      textWrap.style.flex = '1';
+      const textEl = document.createElement('div');
+      textEl.className = 'dialogue-text';
+      textEl.innerHTML = highlightWords(line.text, wordsToday);
+      const zhEl = document.createElement('div');
+      zhEl.className = 'dialogue-text-zh';
+      zhEl.textContent = line.zh;
+      textWrap.appendChild(textEl);
+      textWrap.appendChild(zhEl);
+      row.appendChild(spEl);
+      row.appendChild(textWrap);
+      body.appendChild(row);
+      _readingText += line.text + ' ';
+    });
+  } else {
+    data.paras.forEach(para => {
+      const wrap = document.createElement('div');
+      wrap.className = 'article-para';
+      const indText = document.createElement('div');
+      indText.innerHTML = highlightWords(para.text, wordsToday);
+      const zhText = document.createElement('div');
+      zhText.className = 'article-para-zh';
+      zhText.textContent = para.zh;
+      wrap.appendChild(indText);
+      wrap.appendChild(zhText);
+      body.appendChild(wrap);
+      _readingText += para.text + ' ';
+    });
+  }
+
+  // 今日出現的詞彙標籤
+  const vocabEl = document.getElementById('readingVocab');
+  // 找出今日單字中，實際出現在文章裡的
+  const appeared = currentWords().filter(w =>
+    _readingText.toLowerCase().includes(w.word.toLowerCase())
+  );
+  if (appeared.length > 0) {
+    vocabEl.innerHTML = '<div class="reading-vocab-title">📌 今日單字出現於本文</div><div class="reading-vocab-chips" id="vocabChips"></div>';
+    const chips = document.getElementById('vocabChips');
+    appeared.forEach(w => {
+      const chip = document.createElement('div');
+      chip.className = 'vocab-chip';
+      chip.innerHTML = `${w.word} <span>${w.zh}</span>`;
+      chips.appendChild(chip);
+    });
+  } else {
+    vocabEl.innerHTML = '<div class="reading-vocab-title" style="margin-bottom:0">📖 閱讀後可前往閃卡複習今日單字</div>';
+  }
+}
+
+function highlightWords(text, wordList) {
+  let result = text;
+  // 由長到短排序避免部分匹配問題
+  const sorted = [...wordList].sort((a, b) => b.length - a.length);
+  sorted.forEach(word => {
+    if (!word) return;
+    const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    result = result.replace(new RegExp('\\b(' + escaped + ')\\b', 'gi'),
+      '<span class="hl">$1</span>');
+  });
+  return result;
+}
+
+function speakReadingText() {
+  if (!_readingText) return;
+  const btn = document.getElementById('readingSpeakBtn');
+  btn.classList.add('speaking');
+  doSpeak(_readingText.trim(), btn);
+}
+function stopSpeaking() {
+  window.speechSynthesis.cancel();
+  const btn = document.getElementById('readingSpeakBtn');
+  if (btn) btn.classList.remove('speaking');
+}
+
+init();
+</script>
+</body>
+</html>
+
+{
+  "name": "印尼文學習助手",
+  "short_name": "印尼文",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4A90E2",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/197/197571.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
