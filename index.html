@@ -3,7 +3,25 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>UKBI Madya 單字訓練系統 v3</title>
+<title>Belajar · UKBI Madya 單字訓練系統</title>
+
+<!-- ══ PWA 設定 ══ -->
+<meta name="description" content="UKBI Madya 印尼語備考系統，含閃卡、測驗、情境文與例句收藏功能。">
+<meta name="theme-color" content="#c8502a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Belajar">
+
+<!-- Open Graph（分享預覽） -->
+<meta property="og:title" content="Belajar · UKBI Madya 單字訓練系統">
+<meta property="og:description" content="2100 個印尼語單字，SRS 間隔重複，閃卡 × 測驗 × 情境文">
+<meta property="og:type" content="website">
+
+<!-- manifest & icons -->
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🇮🇩</text></svg>">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23c8502a'/><text x='50' y='68' font-size='52' text-anchor='middle' fill='white' font-family='serif' font-weight='bold'>B.</text></svg>">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
@@ -224,6 +242,61 @@ header {
   text-align:center;
   font-style:italic;
 }
+
+/* ── 恢復進度橫幅 ── */
+.restore-banner {
+  display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;
+  background:linear-gradient(135deg, #1a2a3a, #0d1820);
+  border:1.5px solid rgba(42,78,142,0.5);
+  border-radius:14px; padding:14px 18px; margin-bottom:18px;
+  animation: slideDown 0.4s cubic-bezier(.4,0,.2,1);
+}
+@keyframes slideDown {
+  from { opacity:0; transform:translateY(-12px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.restore-left { display:flex; align-items:center; gap:12px; }
+.restore-icon { font-size:26px; flex-shrink:0; }
+.restore-title { font-size:13px; font-weight:600; color:#fff; margin-bottom:3px; }
+.restore-meta  { font-size:11px; color:rgba(255,255,255,0.5); font-family:'JetBrains Mono',monospace; }
+.restore-actions { display:flex; gap:8px; flex-shrink:0; }
+.restore-btn-yes {
+  padding:7px 16px; border-radius:20px; border:1.5px solid rgba(42,200,120,0.5);
+  background:rgba(42,200,120,0.15); color:#3ecf8e;
+  font-size:12px; font-weight:600; font-family:'Outfit',sans-serif;
+  cursor:pointer; transition:all 0.18s; white-space:nowrap;
+}
+.restore-btn-yes:hover { background:rgba(42,200,120,0.3); }
+.restore-btn-no {
+  padding:7px 12px; border-radius:20px; border:1px solid rgba(255,255,255,0.12);
+  background:transparent; color:rgba(255,255,255,0.35);
+  font-size:12px; font-family:'Outfit',sans-serif;
+  cursor:pointer; transition:all 0.15s; white-space:nowrap;
+}
+.restore-btn-no:hover { color:rgba(255,255,255,0.7); border-color:rgba(255,255,255,0.3); }
+
+/* ── 進度備份 UI ── */
+.backup-row {
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:12px 0; border-bottom:1px solid var(--border);
+}
+.backup-info { flex:1; }
+.backup-btn {
+  padding:6px 16px; border-radius:8px; font-size:12px; font-weight:600;
+  font-family:'Outfit',sans-serif; cursor:pointer; transition:all 0.15s;
+  white-space:nowrap; border:1.5px solid transparent;
+}
+.export-btn { border-color:rgba(42,78,142,0.4); background:rgba(42,78,142,0.08); color:var(--blue); }
+.export-btn:hover { background:rgba(42,78,142,0.18); }
+.import-btn { border-color:rgba(42,110,78,0.4); background:rgba(42,110,78,0.08); color:var(--green); }
+.import-btn:hover { background:rgba(42,110,78,0.18); }
+.import-box { margin-top:12px; padding:14px; background:var(--surface2); border-radius:10px; border:1px solid var(--border); }
+.import-textarea {
+  width:100%; height:90px; border-radius:8px; border:1.5px solid var(--border);
+  background:var(--surface); font-family:'JetBrains Mono',monospace;
+  font-size:11px; color:var(--text); padding:10px; resize:vertical; outline:none;
+}
+.import-textarea:focus { border-color:var(--blue); }
 
 /* ── 情境文模式 ── */
 .reading-card {
@@ -724,6 +797,21 @@ header {
   </div>
 </header>
 
+<!-- ══ 恢復進度橫幅（有儲存進度時才顯示）══ -->
+<div id="restoreBanner" class="restore-banner" style="display:none">
+  <div class="restore-left">
+    <div class="restore-icon">📂</div>
+    <div class="restore-info">
+      <div class="restore-title">偵測到上次的學習進度</div>
+      <div class="restore-meta" id="restoreMeta">第1週 Day1・已完成 0 張卡・測驗正確率 —</div>
+    </div>
+  </div>
+  <div class="restore-actions">
+    <button class="restore-btn-yes" onclick="confirmRestore()">✅ 恢復進度</button>
+    <button class="restore-btn-no"  onclick="dismissRestore()">✕ 從頭開始</button>
+  </div>
+</div>
+
 <!-- STREAK -->
 <div class="streak-row">
   <div class="streak-card">
@@ -789,6 +877,28 @@ header {
   <div class="rem-row">
     <div><div class="rem-lbl">測試提醒</div><div class="rem-sub">立即發送一則測試通知</div></div>
     <button class="notif-btn" onclick="sendTestNotif()" style="padding:5px 12px;font-size:11px">測試通知</button>
+  </div>
+  <div class="dash-sec" style="margin-top:20px">💾 進度備份與還原（GitHub Pages 跨裝置使用）</div>
+  <div class="backup-row">
+    <div class="backup-info">
+      <div class="rem-lbl">匯出進度快照</div>
+      <div class="rem-sub">將全部進度複製為文字，可貼到記事本保存</div>
+    </div>
+    <button class="backup-btn export-btn" onclick="exportProgress()">📤 匯出</button>
+  </div>
+  <div class="backup-row" style="margin-top:0;border-top:none">
+    <div class="backup-info">
+      <div class="rem-lbl">匯入進度快照</div>
+      <div class="rem-sub">貼上之前匯出的進度文字以還原</div>
+    </div>
+    <button class="backup-btn import-btn" onclick="showImportBox()">📥 匯入</button>
+  </div>
+  <div id="importBox" class="import-box hidden">
+    <textarea id="importText" class="import-textarea" placeholder="請在此貼上進度快照文字…"></textarea>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="backup-btn export-btn" style="flex:1" onclick="doImport()">確認匯入</button>
+      <button class="backup-btn" style="flex:1;border-color:var(--border);color:var(--muted)" onclick="document.getElementById('importBox').classList.add('hidden')">取消</button>
+    </div>
   </div>
 </div>
 
@@ -1436,17 +1546,33 @@ function buildSchedule() {
 const SCHEDULE = buildSchedule();
 
 // ══════════════════════════════════════════════════════
-// ── LOCAL STORAGE — 進度儲存系統 ──
+// ── LOCALSTORAGE 進度系統 v2 ──
 //
-// 新增 key:
-//   ukbi_position  → { week, day, cardIdx }   閃卡位置（接續進度）
-//   ukbi_mode      → 'flash' | 'list' | 'quiz' 上次模式
+// 所有 keys:
+//   ukbi_position    → { week, day, cardIdx }
+//   ukbi_mode        → 模式字串
+//   ukbi_srs         → SRS 資料
+//   ukbi_mastered    → 已掌握單字
+//   ukbi_todayNew    → 今日新學數
+//   ukbi_lastDate    → 上次學習日期
+//   ukbi_streak      → 連續天數
+//   ukbi_history     → 每日活動記錄
+//   ukbi_quizStats   → 測驗總統計
+//   ukbi_reminder    → 提醒設定
+//   ukbi_saved_examples → 儲存的例句
 //
-// 原有 keys 不變:
-//   ukbi_srs, ukbi_mastered, ukbi_todayNew, ukbi_lastDate,
-//   ukbi_streak, ukbi_history, ukbi_quizStats, ukbi_reminder
+// 進度快照（匯出/匯入）格式：
+//   ukbi_snapshot_v1::{base64(JSON)}
 // ══════════════════════════════════════════════════════
 
+const LS_KEYS = [
+  'ukbi_position','ukbi_mode','ukbi_srs','ukbi_mastered',
+  'ukbi_todayNew','ukbi_lastDate','ukbi_streak',
+  'ukbi_history','ukbi_quizStats','ukbi_saved_examples'
+];
+const SNAPSHOT_PREFIX = 'ukbi_snapshot_v1::';
+
+// ── 讀取 / 寫入 位置與模式 ──
 function loadPosition() {
   try { return JSON.parse(localStorage.getItem('ukbi_position') || 'null'); }
   catch(e) { return null; }
@@ -1456,11 +1582,103 @@ function savePosition() {
     week: S.week, day: S.day, cardIdx: S.cardIdx
   }));
 }
-function loadMode() {
-  return localStorage.getItem('ukbi_mode') || 'flash';
+function loadMode() { return localStorage.getItem('ukbi_mode') || 'flash'; }
+function saveMode(m) { localStorage.setItem('ukbi_mode', m); }
+
+// ── 進度快照：匯出 ──
+function exportProgress() {
+  const snapshot = {};
+  LS_KEYS.forEach(k => { snapshot[k] = localStorage.getItem(k); });
+  snapshot._exportedAt = new Date().toISOString();
+  try {
+    const encoded = SNAPSHOT_PREFIX + btoa(unescape(encodeURIComponent(JSON.stringify(snapshot))));
+    // 複製到剪貼簿
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(encoded).then(() => {
+        showSaveToastMsg('📤 進度已複製到剪貼簿！');
+      }).catch(() => fallbackCopyExport(encoded));
+    } else {
+      fallbackCopyExport(encoded);
+    }
+  } catch(e) {
+    showSaveToastMsg('❌ 匯出失敗：' + e.message);
+  }
 }
-function saveMode(m) {
-  localStorage.setItem('ukbi_mode', m);
+function fallbackCopyExport(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); showSaveToastMsg('📤 進度已複製到剪貼簿！'); }
+  catch(e) { showSaveToastMsg('❌ 請手動複製彈出的文字'); prompt('複製此進度快照：', text); }
+  document.body.removeChild(ta);
+}
+
+// ── 進度快照：匯入 ──
+function showImportBox() {
+  const box = document.getElementById('importBox');
+  box.classList.toggle('hidden');
+  if (!box.classList.contains('hidden')) {
+    document.getElementById('importText').focus();
+  }
+}
+function doImport() {
+  const raw = document.getElementById('importText').value.trim();
+  if (!raw.startsWith(SNAPSHOT_PREFIX)) {
+    showSaveToastMsg('❌ 格式不正確，請確認是有效的進度快照'); return;
+  }
+  try {
+    const json = decodeURIComponent(escape(atob(raw.slice(SNAPSHOT_PREFIX.length))));
+    const snapshot = JSON.parse(json);
+    LS_KEYS.forEach(k => {
+      if (snapshot[k] !== undefined && snapshot[k] !== null) {
+        localStorage.setItem(k, snapshot[k]);
+      }
+    });
+    showSaveToastMsg('✅ 進度匯入成功，即將重新載入…');
+    setTimeout(() => location.reload(), 1500);
+  } catch(e) {
+    showSaveToastMsg('❌ 匯入失敗：資料可能已損壞');
+  }
+}
+
+// ── 恢復進度橫幅 ──
+function buildRestoreMetaText(pos, qs) {
+  const w = pos ? pos.week : 1;
+  const d = pos ? pos.day  : 1;
+  const c = pos ? pos.cardIdx : 0;
+  const mastered = Object.keys(JSON.parse(localStorage.getItem('ukbi_mastered') || '{}')).length;
+  const streak   = parseInt(localStorage.getItem('ukbi_streak') || '1');
+  const acc = qs && qs.total > 0
+    ? Math.round(qs.correct / qs.total * 100) + '%'
+    : '—';
+  return `第${w}週 Day${d}・已學 ${c} 張・已掌握 ${mastered} 字・連續 ${streak} 天・測驗正確率 ${acc}`;
+}
+
+function initRestoreBanner() {
+  const pos = loadPosition();
+  const qs  = JSON.parse(localStorage.getItem('ukbi_quizStats') || '{"total":0,"correct":0}');
+  // 只在有真實進度時顯示（非第1週第1天第0張）
+  const hasProgress = pos && (pos.week > 1 || pos.day > 1 || pos.cardIdx > 0);
+  if (!hasProgress) return;
+
+  const banner = document.getElementById('restoreBanner');
+  const meta   = document.getElementById('restoreMeta');
+  meta.textContent = buildRestoreMetaText(pos, qs);
+  banner.style.display = 'flex';
+}
+
+function confirmRestore() {
+  // 進度已在 S 初始化時從 LS 讀取，直接關閉橫幅即可
+  document.getElementById('restoreBanner').style.display = 'none';
+  showSaveToastMsg(`📍 已接續：第${S.week}週 Day${S.day}，第 ${S.cardIdx + 1} 張卡`);
+}
+
+function dismissRestore() {
+  if (!confirm('確定要清除全部進度，從頭開始嗎？此操作無法復原。')) return;
+  // 清除所有學習相關 LS key（保留提醒設定）
+  LS_KEYS.forEach(k => localStorage.removeItem(k));
+  document.getElementById('restoreBanner').style.display = 'none';
+  location.reload();
 }
 
 // Toast 通知已移至 showSaveToastMsg（統一處理）
@@ -1468,8 +1686,6 @@ let _toastTimer = null;
 
 // ── STATE ──
 const today = new Date().toDateString();
-
-// 先讀取儲存的位置
 const _savedPos = loadPosition();
 
 let S = {
@@ -1503,6 +1719,7 @@ if (S.lastDate !== today) {
   localStorage.setItem('ukbi_streak', S.streak);
   localStorage.setItem('ukbi_todayNew', '0');
 }
+
 
 // ── SPEECH ──
 function doSpeak(text, btnEl) {
@@ -1736,17 +1953,7 @@ function init() {
   setModeInternal(S.mode);
 
   initNotifications();
-
-  // 顯示接續進度提示（若非第1週第1天）
-  if (S.week > 1 || S.day > 1 || S.cardIdx > 0) {
-    const toast = document.getElementById('saveToast');
-    toast.textContent = `📍 已接續：第${S.week}週 Day${S.day}，第 ${S.cardIdx + 1} 張卡`;
-    toast.classList.add('show');
-    setTimeout(() => {
-      toast.classList.remove('show');
-      setTimeout(() => { toast.textContent = '💾 進度已儲存'; }, 400);
-    }, 3000);
-  }
+  initRestoreBanner(); // ← 顯示「恢復進度」橫幅（如有儲存進度）
 }
 
 function buildWeekTabs() {
@@ -2644,6 +2851,84 @@ function stopSpeaking() {
 }
 
 init();
+</script>
+
+<!-- ══ Service Worker 註冊 + 訊息接收 ══ -->
+<script>
+(function() {
+  if (!('serviceWorker' in navigator)) {
+    console.log('[PWA] 此瀏覽器不支援 Service Worker');
+    return;
+  }
+
+  // ── 1. 接收 SW 傳來的訊息 ──
+  navigator.serviceWorker.addEventListener('message', event => {
+    const { data } = event;
+    if (!data) return;
+
+    switch (data.type) {
+      case 'SW_ACTIVATED':
+        console.log('[PWA] Service Worker 已啟用，版本：', data.version);
+        // 非初次載入才顯示「已更新」提示
+        if (sessionStorage.getItem('sw_welcomed')) {
+          if (typeof showSaveToastMsg === 'function') {
+            showSaveToastMsg('🆕 離線快取已更新');
+          }
+        }
+        sessionStorage.setItem('sw_welcomed', '1');
+        break;
+
+      case 'CACHE_CLEARED':
+        console.log('[PWA] 快取已清除');
+        break;
+
+      case 'VERSION':
+        console.log('[PWA] 快取版本：', data.version);
+        break;
+    }
+  });
+
+  // ── 2. 註冊 Service Worker ──
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js', { scope: './' })
+      .then(reg => {
+        console.log('[PWA] SW 已註冊，scope:', reg.scope);
+
+        // 有新版 SW 等待安裝時
+        reg.onupdatefound = () => {
+          const newWorker = reg.installing;
+          if (!newWorker) return;
+          newWorker.onstatechange = () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              console.log('[PWA] 偵測到新版本，等待下次開啟生效');
+              if (typeof showSaveToastMsg === 'function') {
+                showSaveToastMsg('🆕 有新版本，下次開啟自動更新');
+              }
+            }
+          };
+        };
+      })
+      .catch(err => console.warn('[PWA] SW 註冊失敗（不影響正常使用）:', err));
+  });
+
+  // ── 3. 網路狀態提示 ──
+  function updateOnlineStatus() {
+    if (!navigator.onLine) {
+      if (typeof showSaveToastMsg === 'function') {
+        showSaveToastMsg('📴 目前離線，使用快取中');
+      }
+    }
+  }
+  window.addEventListener('offline', updateOnlineStatus);
+  // 恢復上線時靜默（避免打擾）
+
+  // ── 4. 工具函式：供主程式呼叫 SW ──
+  window.swSendMessage = function(message) {
+    if (navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage(message);
+    }
+  };
+})();
 </script>
 </body>
 </html>
