@@ -2646,40 +2646,5 @@ function stopSpeaking() {
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#4A90E2">
 
-<script>
-        // --- 1. 翻牌功能 ---
-        function flipCard(cardElement) {
-            cardElement.classList.toggle('is-flipped');
-        }
-
-        // --- 2. 儲存進度 (僅手機本地記憶) ---
-        function saveProgress(lessonName) {
-            localStorage.setItem('ukbi_progress', lessonName);
-            updateUI();
-            alert('進度已儲存：' + lessonName);
-        }
-
-        // --- 3. 更新畫面顯示 ---
-        function updateUI() {
-            const lastLesson = localStorage.getItem('ukbi_progress');
-            const statusBox = document.getElementById('status');
-            if (lastLesson && statusBox) {
-                statusBox.innerText = "上次學到：" + lastLesson;
-            }
-        }
-
-        // --- 4. 初始化 (頁面載入時執行) ---
-        window.onload = function() {
-            // 讀取進度
-            updateUI();
-            
-            // 註冊 PWA Service Worker
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('sw.js')
-                    .then(() => console.log("PWA 服務已啟動"))
-                    .catch((err) => console.log("PWA 註冊失敗:", err));
-            }
-        };
-    </script>
 </body>
 </html>
